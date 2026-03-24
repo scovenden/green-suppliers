@@ -1,8 +1,11 @@
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using GreenSuppliers.Api.Auth;
 using GreenSuppliers.Api.Data;
 using GreenSuppliers.Api.Middleware;
 using GreenSuppliers.Api.Services;
+using GreenSuppliers.Api.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateSupplierValidator>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
