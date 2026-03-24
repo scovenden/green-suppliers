@@ -2,6 +2,7 @@ using System.Text;
 using GreenSuppliers.Api.Auth;
 using GreenSuppliers.Api.Data;
 using GreenSuppliers.Api.Middleware;
+using GreenSuppliers.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +17,9 @@ builder.Services.AddSwaggerGen();
 // Database
 builder.Services.AddDbContext<GreenSuppliersDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Application services
+builder.Services.AddScoped<ISupplierSearchService, SqlFullTextSearchService>();
 
 // JWT Authentication
 builder.Services.AddScoped<JwtTokenService>();
