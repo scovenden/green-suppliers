@@ -1,4 +1,5 @@
 using GreenSuppliers.Api.Data;
+using GreenSuppliers.Api.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,10 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<GreenSuppliersDbContext>();
     await SeedData.SeedAsync(context);
 }
+
+// Middleware (order matters: logging first, then error handling)
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
