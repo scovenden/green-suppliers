@@ -1,6 +1,10 @@
+using System.Text;
+using GreenSuppliers.Api.Auth;
 using GreenSuppliers.Api.Data;
 using GreenSuppliers.Api.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +16,30 @@ builder.Services.AddSwaggerGen();
 // Database
 builder.Services.AddDbContext<GreenSuppliersDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// JWT Authentication
+builder.Services.AddScoped<JwtTokenService>();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireClaim("role", "Admin"));
+});
 
 var app = builder.Build();
 
@@ -35,6 +63,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
+
+// Make Program accessible for WebApplicationFactory in integration tests
+public partial class Program { }
