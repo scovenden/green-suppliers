@@ -3,7 +3,7 @@ namespace GreenSuppliers.Api.Models.DTOs;
 public class LeadDto
 {
     public Guid Id { get; set; }
-    public Guid SupplierProfileId { get; set; }
+    public Guid? SupplierProfileId { get; set; }
     public Guid? BuyerOrganizationId { get; set; }
     public Guid? BuyerUserId { get; set; }
     public string ContactName { get; set; } = string.Empty;

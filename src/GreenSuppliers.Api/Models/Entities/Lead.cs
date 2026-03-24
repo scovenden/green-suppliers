@@ -8,7 +8,7 @@ public class Lead
 {
     public Guid Id { get; set; }
 
-    public Guid SupplierProfileId { get; set; }
+    public Guid? SupplierProfileId { get; set; }
     public Guid? BuyerOrganizationId { get; set; }
     public Guid? BuyerUserId { get; set; }
 
@@ -40,7 +40,7 @@ public class Lead
     public DateTime UpdatedAt { get; set; }
 
     // Navigation properties
-    public SupplierProfile SupplierProfile { get; set; } = null!;
+    public SupplierProfile? SupplierProfile { get; set; }
     public Organization? BuyerOrganization { get; set; }
     public User? BuyerUser { get; set; }
 }

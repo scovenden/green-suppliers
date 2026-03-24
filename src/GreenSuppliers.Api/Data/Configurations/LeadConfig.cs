@@ -67,6 +67,7 @@ public class LeadConfig : IEntityTypeConfiguration<Lead>
         builder.HasOne(l => l.SupplierProfile)
             .WithMany(sp => sp.Leads)
             .HasForeignKey(l => l.SupplierProfileId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(l => l.BuyerOrganization)
