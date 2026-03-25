@@ -80,12 +80,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function refreshSession(refreshToken: string) {
     try {
-      const res = await apiPost<LoginResponse>("/auth/refresh", { refreshToken });
+      const res = await apiPost<{ accessToken: string; refreshToken: string; expiresAt: string }>("/auth/refresh", { refreshToken });
       if (res.success && res.data) {
-        persistSession(res.data.user, res.data.tokens);
+        const payload = JSON.parse(atob(res.data.accessToken.split(".")[1]));
+        const user: AdminUser = {
+          id: payload.sub,
+          email: payload.email,
+          displayName: payload.email.split("@")[0],
+          role: payload.role,
+        };
+        const tokens: AuthTokens = {
+          accessToken: res.data.accessToken,
+          refreshToken: res.data.refreshToken,
+          expiresAt: res.data.expiresAt,
+        };
+        persistSession(user, tokens);
         setState({
-          user: res.data.user,
-          token: res.data.tokens.accessToken,
+          user,
+          token: tokens.accessToken,
           isLoading: false,
         });
         return;
@@ -103,15 +115,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: string
     ): Promise<{ success: boolean; error?: string }> => {
       try {
-        const res = await apiPost<LoginResponse>("/auth/login", {
+        // API returns { data: { accessToken, refreshToken, expiresAt } }
+        const res = await apiPost<{ accessToken: string; refreshToken: string; expiresAt: string }>("/auth/login", {
           email,
           password,
         });
         if (res.success && res.data) {
-          persistSession(res.data.user, res.data.tokens);
+          // Decode user info from JWT payload
+          const payload = JSON.parse(atob(res.data.accessToken.split(".")[1]));
+          const user: AdminUser = {
+            id: payload.sub,
+            email: payload.email,
+            displayName: payload.email.split("@")[0],
+            role: payload.role,
+          };
+          const tokens: AuthTokens = {
+            accessToken: res.data.accessToken,
+            refreshToken: res.data.refreshToken,
+            expiresAt: res.data.expiresAt,
+          };
+          persistSession(user, tokens);
           setState({
-            user: res.data.user,
-            token: res.data.tokens.accessToken,
+            user,
+            token: tokens.accessToken,
             isLoading: false,
           });
           return { success: true };
@@ -120,7 +146,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           success: false,
           error: res.error?.message ?? "Invalid credentials",
         };
-      } catch {
+      } catch (err) {
+        console.error("Login error:", err);
         return { success: false, error: "Network error. Please try again." };
       }
     },
