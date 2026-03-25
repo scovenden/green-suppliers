@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type { SupplierSearchResult } from "@/lib/types";
 import { getEsgBadgeColor } from "@/lib/types";
 import { EsgBadge } from "./esg-badge";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight, Shield } from "lucide-react";
 
 interface SupplierCardProps {
   supplier: SupplierSearchResult;
@@ -19,35 +19,40 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-function getEsgHeaderColor(level: string): string {
+function getEsgGradientBorder(level: string): string {
   switch (level.toLowerCase()) {
     case "platinum":
-      return "bg-gradient-to-r from-lime-600 to-green-700";
+      return "from-lime-500 via-green-600 to-emerald-700";
     case "gold":
-      return "bg-gradient-to-r from-amber-500 to-amber-600";
+      return "from-amber-400 via-amber-500 to-amber-600";
     case "silver":
-      return "bg-gradient-to-r from-gray-400 to-gray-500";
+      return "from-gray-300 via-gray-400 to-gray-500";
     case "bronze":
-      return "bg-gradient-to-r from-amber-700 to-amber-800";
+      return "from-amber-600 via-amber-700 to-amber-800";
     default:
-      return "bg-gradient-to-r from-gray-200 to-gray-300";
+      return "from-gray-200 via-gray-250 to-gray-300";
   }
 }
 
 export function SupplierCard({ supplier, className }: SupplierCardProps) {
   const esgColors = getEsgBadgeColor(supplier.esgLevel);
-  const headerColor = getEsgHeaderColor(supplier.esgLevel);
+  const gradientBorder = getEsgGradientBorder(supplier.esgLevel);
+
+  // Simulate a renewable energy % from esgScore for the mini-bar visual
+  const renewablePercent = Math.min(100, Math.max(0, supplier.esgScore));
 
   return (
     <Link
       href={`/suppliers/${supplier.slug}`}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
+        "group relative flex flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white transition-all duration-300 ease-out",
+        "shadow-[0_4px_16px_rgba(0,0,0,0.06)]",
+        "hover:shadow-[0_12px_48px_rgba(0,0,0,0.12)] hover:-translate-y-1",
         className
       )}
     >
-      {/* ESG-colored header strip */}
-      <div className={cn("h-2", headerColor)} />
+      {/* ESG-colored gradient border strip at top */}
+      <div className={cn("h-1.5 bg-gradient-to-r", gradientBorder)} />
 
       <div className="flex flex-col gap-4 p-5">
         {/* Top row: logo + name + badge */}
@@ -55,7 +60,7 @@ export function SupplierCard({ supplier, className }: SupplierCardProps) {
           {/* Company initials placeholder */}
           <div
             className={cn(
-              "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-sm font-bold",
+              "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-bold transition-transform duration-300 ease-out group-hover:scale-105",
               esgColors.bg,
               esgColors.text
             )}
@@ -64,7 +69,7 @@ export function SupplierCard({ supplier, className }: SupplierCardProps) {
               <img
                 src={supplier.logoUrl}
                 alt={supplier.tradingName}
-                className="h-full w-full rounded-xl object-cover"
+                className="h-full w-full rounded-2xl object-cover"
               />
             ) : (
               getInitials(supplier.tradingName)
@@ -73,7 +78,7 @@ export function SupplierCard({ supplier, className }: SupplierCardProps) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="truncate text-base font-semibold text-gray-900 group-hover:text-brand-green">
+              <h3 className="truncate text-base font-semibold text-gray-900 transition-colors duration-300 group-hover:text-brand-green">
                 {supplier.tradingName}
               </h3>
               {supplier.isVerified && (
@@ -115,10 +120,41 @@ export function SupplierCard({ supplier, className }: SupplierCardProps) {
           </div>
         )}
 
+        {/* Certification count + Sustainability mini-bar */}
+        <div className="flex items-center gap-4">
+          {/* Certification count */}
+          {supplier.isVerified && (
+            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Shield className="h-3.5 w-3.5 text-harvest-gold" />
+              <span className="font-medium">
+                {supplier.esgLevel.toLowerCase() === "platinum"
+                  ? "3+ certs"
+                  : supplier.esgLevel.toLowerCase() === "gold"
+                  ? "2+ certs"
+                  : "1+ cert"}
+              </span>
+            </div>
+          )}
+
+          {/* Renewable energy mini-bar */}
+          <div className="flex flex-1 items-center gap-2">
+            <span className="text-xs text-gray-400 whitespace-nowrap">ESG</span>
+            <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-brand-green to-brand-emerald transition-all duration-500 ease-out"
+                style={{ width: `${renewablePercent}%` }}
+              />
+            </div>
+            <span className="text-xs font-medium text-gray-500">
+              {renewablePercent}
+            </span>
+          </div>
+        </div>
+
         {/* View profile link */}
-        <div className="flex items-center text-sm font-medium text-brand-green group-hover:text-brand-green-hover">
+        <div className="flex items-center text-sm font-medium text-brand-green transition-colors duration-300 group-hover:text-brand-green-hover">
           View Profile
-          <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
         </div>
       </div>
     </Link>

@@ -10,12 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   CheckCircle,
   AlertCircle,
   Send,
   Loader2,
   Building2,
+  Check,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -34,6 +36,57 @@ const countries = [
   { code: "UG", name: "Uganda" },
   { code: "BW", name: "Botswana" },
 ];
+
+// ---------------------------------------------------------------------------
+// Confetti particles component (CSS-only)
+// ---------------------------------------------------------------------------
+
+function SuccessConfetti() {
+  const particles = React.useMemo(() => {
+    const colors = ["#16A34A", "#059669", "#15803D", "#22C55E", "#A3E635", "#34D399"];
+    return Array.from({ length: 24 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 0.8}s`,
+      duration: `${1.2 + Math.random() * 1}s`,
+      color: colors[i % colors.length],
+      size: `${6 + Math.random() * 6}px`,
+    }));
+  }, []);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="confetti-particle"
+          style={{
+            left: p.left,
+            top: "20%",
+            animationDelay: p.delay,
+            animationDuration: p.duration,
+            backgroundColor: p.color,
+            width: p.size,
+            height: p.size,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Field validation checkmark
+// ---------------------------------------------------------------------------
+
+function FieldCheck({ valid }: { valid: boolean }) {
+  if (!valid) return null;
+  return (
+    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+      <Check className="h-4 w-4 text-brand-green" />
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -152,9 +205,11 @@ export function GetListedForm() {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    watch,
+    formState: { errors, dirtyFields, touchedFields },
   } = useForm<GetListedFormData>({
     resolver: zodResolver(getListedSchema),
+    mode: "onChange",
     defaultValues: {
       companyName: "",
       contactName: "",
@@ -167,6 +222,37 @@ export function GetListedForm() {
       certifications: "",
     },
   });
+
+  const watchedValues = watch();
+
+  // Calculate form completion progress
+  const requiredFields: (keyof GetListedFormData)[] = [
+    "companyName",
+    "contactName",
+    "contactEmail",
+    "country",
+    "description",
+  ];
+  const optionalFields: (keyof GetListedFormData)[] = [
+    "contactPhone",
+    "website",
+    "city",
+    "certifications",
+  ];
+  const allFields = [...requiredFields, ...optionalFields];
+
+  const filledCount = allFields.filter((f) => {
+    const val = watchedValues[f];
+    return typeof val === "string" && val.trim().length > 0;
+  }).length;
+  const completionPercent = Math.round((filledCount / allFields.length) * 100);
+
+  // Check if a field is valid (filled and no error)
+  function isFieldValid(fieldName: keyof GetListedFormData): boolean {
+    const val = watchedValues[fieldName];
+    const filled = typeof val === "string" && val.trim().length > 0;
+    return filled && !errors[fieldName] && (!!dirtyFields[fieldName] || !!touchedFields[fieldName]);
+  }
 
   function toggleIndustry(id: string) {
     setSelectedIndustries((prev) =>
@@ -203,26 +289,27 @@ export function GetListedForm() {
   }
 
   // -------------------------------------------------------------------------
-  // Success state
+  // Success state with confetti
   // -------------------------------------------------------------------------
 
   if (status === "success") {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-green-200 bg-green-50 p-10 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-green/10">
+      <div className="relative flex flex-col items-center gap-4 overflow-hidden rounded-3xl border border-green-200 bg-green-50 p-10 text-center">
+        <SuccessConfetti />
+        <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-brand-green/10">
           <CheckCircle className="h-7 w-7 text-brand-green" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900">
+        <h3 className="relative text-xl font-semibold text-gray-900">
           Application Received!
         </h3>
-        <p className="max-w-md text-sm leading-relaxed text-gray-600">
+        <p className="relative max-w-md text-sm leading-relaxed text-gray-600">
           Thank you for applying to be listed on Green Suppliers. Our team
           will review your submission and be in touch within 2 business days.
         </p>
         <Button
           variant="outline"
           onClick={() => setStatus("idle")}
-          className="mt-2"
+          className="relative mt-2 rounded-xl"
         >
           Submit another application
         </Button>
@@ -239,15 +326,34 @@ export function GetListedForm() {
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-6"
     >
+      {/* Progress indicator */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium text-gray-700">Form completion</span>
+          <span className={cn(
+            "font-bold transition-colors",
+            completionPercent === 100 ? "text-brand-green" : "text-gray-500"
+          )}>
+            {completionPercent}%
+          </span>
+        </div>
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-brand-green to-brand-emerald transition-all duration-500 ease-out"
+            style={{ width: `${completionPercent}%` }}
+          />
+        </div>
+      </div>
+
       {status === "error" && errorMessage && (
-        <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {errorMessage}
         </div>
       )}
 
       {/* Company details section */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
         <h3 className="flex items-center gap-2 text-base font-semibold text-gray-900">
           <Building2 className="h-5 w-5 text-brand-green" />
           Company Details
@@ -258,12 +364,16 @@ export function GetListedForm() {
             <Label htmlFor="companyName">
               Company Name <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="companyName"
-              placeholder="Your company or trading name"
-              aria-invalid={!!errors.companyName}
-              {...register("companyName")}
-            />
+            <div className="relative">
+              <Input
+                id="companyName"
+                placeholder="Your company or trading name"
+                aria-invalid={!!errors.companyName}
+                className="pr-9"
+                {...register("companyName")}
+              />
+              <FieldCheck valid={isFieldValid("companyName")} />
+            </div>
             {errors.companyName && (
               <p className="text-xs text-red-500">
                 {errors.companyName.message}
@@ -274,12 +384,16 @@ export function GetListedForm() {
           {/* Website */}
           <div className="flex flex-col gap-1.5 sm:col-span-2">
             <Label htmlFor="website">Website</Label>
-            <Input
-              id="website"
-              type="url"
-              placeholder="https://www.yourcompany.co.za"
-              {...register("website")}
-            />
+            <div className="relative">
+              <Input
+                id="website"
+                type="url"
+                placeholder="https://www.yourcompany.co.za"
+                className="pr-9"
+                {...register("website")}
+              />
+              <FieldCheck valid={isFieldValid("website")} />
+            </div>
             {errors.website && (
               <p className="text-xs text-red-500">{errors.website.message}</p>
             )}
@@ -290,19 +404,22 @@ export function GetListedForm() {
             <Label htmlFor="country">
               Country <span className="text-red-500">*</span>
             </Label>
-            <select
-              id="country"
-              className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              aria-invalid={!!errors.country}
-              {...register("country")}
-            >
-              <option value="">Select a country</option>
-              {countries.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                id="country"
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 pr-9"
+                aria-invalid={!!errors.country}
+                {...register("country")}
+              >
+                <option value="">Select a country</option>
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <FieldCheck valid={isFieldValid("country")} />
+            </div>
             {errors.country && (
               <p className="text-xs text-red-500">{errors.country.message}</p>
             )}
@@ -311,11 +428,15 @@ export function GetListedForm() {
           {/* City */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="city">City</Label>
-            <Input
-              id="city"
-              placeholder="e.g. Cape Town, Johannesburg"
-              {...register("city")}
-            />
+            <div className="relative">
+              <Input
+                id="city"
+                placeholder="e.g. Cape Town, Johannesburg"
+                className="pr-9"
+                {...register("city")}
+              />
+              <FieldCheck valid={isFieldValid("city")} />
+            </div>
           </div>
 
           {/* Description */}
@@ -332,6 +453,12 @@ export function GetListedForm() {
               aria-invalid={!!errors.description}
               {...register("description")}
             />
+            {isFieldValid("description") && (
+              <div className="flex items-center gap-1 text-xs text-brand-green">
+                <Check className="h-3 w-3" />
+                Looks good
+              </div>
+            )}
             {errors.description && (
               <p className="text-xs text-red-500">
                 {errors.description.message}
@@ -344,11 +471,15 @@ export function GetListedForm() {
             <Label htmlFor="certifications">
               Certifications / Accreditations
             </Label>
-            <Input
-              id="certifications"
-              placeholder="e.g. ISO 14001, B-Corp, Green Building Council"
-              {...register("certifications")}
-            />
+            <div className="relative">
+              <Input
+                id="certifications"
+                placeholder="e.g. ISO 14001, B-Corp, Green Building Council"
+                className="pr-9"
+                {...register("certifications")}
+              />
+              <FieldCheck valid={isFieldValid("certifications")} />
+            </div>
             <p className="text-xs text-gray-400">
               List any relevant environmental or sustainability certifications
             </p>
@@ -357,7 +488,7 @@ export function GetListedForm() {
       </div>
 
       {/* Industries section */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
         <h3 className="text-base font-semibold text-gray-900">
           Industries
         </h3>
@@ -368,7 +499,7 @@ export function GetListedForm() {
           {industries.map((industry) => (
             <label
               key={industry.id}
-              className="group flex cursor-pointer items-center gap-3 rounded-xl border border-gray-100 px-4 py-3 transition-all hover:border-brand-green/30 hover:bg-brand-green-light/50 has-[:checked]:border-brand-green/40 has-[:checked]:bg-brand-green-light"
+              className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-100 px-4 py-3 transition-all duration-300 ease-out hover:border-brand-green/30 hover:bg-brand-green-light/50 has-[:checked]:border-brand-green/40 has-[:checked]:bg-brand-green-light"
             >
               <input
                 type="checkbox"
@@ -385,7 +516,7 @@ export function GetListedForm() {
       </div>
 
       {/* Contact details section */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
         <h3 className="text-base font-semibold text-gray-900">
           Contact Details
         </h3>
@@ -395,12 +526,16 @@ export function GetListedForm() {
             <Label htmlFor="contactName">
               Contact Name <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="contactName"
-              placeholder="Your full name"
-              aria-invalid={!!errors.contactName}
-              {...register("contactName")}
-            />
+            <div className="relative">
+              <Input
+                id="contactName"
+                placeholder="Your full name"
+                aria-invalid={!!errors.contactName}
+                className="pr-9"
+                {...register("contactName")}
+              />
+              <FieldCheck valid={isFieldValid("contactName")} />
+            </div>
             {errors.contactName && (
               <p className="text-xs text-red-500">
                 {errors.contactName.message}
@@ -411,12 +546,16 @@ export function GetListedForm() {
           {/* Phone */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="contactPhone">Phone</Label>
-            <Input
-              id="contactPhone"
-              type="tel"
-              placeholder="+27 12 345 6789"
-              {...register("contactPhone")}
-            />
+            <div className="relative">
+              <Input
+                id="contactPhone"
+                type="tel"
+                placeholder="+27 12 345 6789"
+                className="pr-9"
+                {...register("contactPhone")}
+              />
+              <FieldCheck valid={isFieldValid("contactPhone")} />
+            </div>
           </div>
 
           {/* Email */}
@@ -424,13 +563,17 @@ export function GetListedForm() {
             <Label htmlFor="contactEmail">
               Email <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="contactEmail"
-              type="email"
-              placeholder="you@company.co.za"
-              aria-invalid={!!errors.contactEmail}
-              {...register("contactEmail")}
-            />
+            <div className="relative">
+              <Input
+                id="contactEmail"
+                type="email"
+                placeholder="you@company.co.za"
+                aria-invalid={!!errors.contactEmail}
+                className="pr-9"
+                {...register("contactEmail")}
+              />
+              <FieldCheck valid={isFieldValid("contactEmail")} />
+            </div>
             {errors.contactEmail && (
               <p className="text-xs text-red-500">
                 {errors.contactEmail.message}
@@ -444,7 +587,7 @@ export function GetListedForm() {
       <Button
         type="submit"
         disabled={status === "submitting"}
-        className="h-12 w-full gap-2 rounded-xl bg-brand-green text-base font-semibold text-white shadow-md transition-colors hover:bg-brand-green-hover"
+        className="h-12 w-full gap-2 rounded-2xl bg-brand-green text-base font-semibold text-white shadow-md transition-all duration-300 ease-out hover:bg-brand-green-hover hover:shadow-lg"
       >
         {status === "submitting" ? (
           <>
