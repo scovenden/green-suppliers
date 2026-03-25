@@ -194,8 +194,8 @@ export function FilterSidebar() {
     async function loadFilterData() {
       try {
         const [countriesRes, industriesRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/taxonomy/countries`),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/taxonomy/industries`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/countries`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/industries`),
         ]);
 
         if (countriesRes.ok) {
