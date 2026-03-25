@@ -137,6 +137,110 @@ export interface GetListedRequest {
 
 export type EsgLevel = "none" | "bronze" | "silver" | "gold" | "platinum";
 
+export type VerificationStatus = "unverified" | "pending" | "verified" | "flagged";
+
+export type LeadStatus = "new" | "contacted" | "closed";
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  displayName: string;
+  role: string;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  user: AdminUser;
+  tokens: AuthTokens;
+}
+
+export interface AdminSupplier {
+  id: string;
+  slug: string;
+  organizationName: string;
+  tradingName: string;
+  countryCode: string;
+  city: string | null;
+  verificationStatus: string;
+  esgLevel: string;
+  esgScore: number;
+  isPublished: boolean;
+  isFlagged: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSupplierRequest {
+  organizationName: string;
+  tradingName: string;
+  description?: string;
+  shortDescription?: string;
+  yearFounded?: number;
+  employeeCount?: string;
+  bbbeeLevel?: string;
+  countryCode: string;
+  city?: string;
+  province?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  renewableEnergyPercent?: number;
+  wasteRecyclingPercent?: number;
+  carbonReporting: boolean;
+  waterManagement: boolean;
+  sustainablePackaging: boolean;
+  industryIds: string[];
+  serviceTagIds: string[];
+}
+
+export interface AdminLead {
+  id: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  companyName: string | null;
+  message: string;
+  status: LeadStatus;
+  supplierProfileId: string | null;
+  supplierTradingName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CertificationType {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  isActive: boolean;
+}
+
+export interface AdminDashboardStats {
+  totalSuppliers: number;
+  verifiedSuppliers: number;
+  newLeads: number;
+  pendingCertifications: number;
+}
+
+export interface AdminActivity {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  description: string;
+  createdAt: string;
+}
+
 export function getEsgBadgeColor(level: string) {
   switch (level.toLowerCase()) {
     case "platinum":

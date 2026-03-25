@@ -72,3 +72,42 @@ export async function apiPatch<T>(
   });
   return res.json();
 }
+
+export async function apiDelete<T>(
+  path: string,
+  token: string
+): Promise<ApiResponse<T>> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (res.status === 204) {
+    return { success: true, data: null, error: null };
+  }
+  return res.json();
+}
+
+export async function apiGetAuth<T>(
+  path: string,
+  token: string
+): Promise<ApiResponse<T>> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    return (
+      body ?? {
+        success: false,
+        data: null,
+        error: { code: "FETCH_ERROR", message: res.statusText },
+      }
+    );
+  }
+  return res.json();
+}
