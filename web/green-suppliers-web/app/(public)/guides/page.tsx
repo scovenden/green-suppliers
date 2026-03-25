@@ -65,6 +65,30 @@ const guides: GuidePreview[] = [
     publishedAt: "2026-03-18",
     category: "Carbon",
   },
+  {
+    slug: "rise-of-green-procurement-south-africa",
+    title: "The Rise of Green Procurement in South Africa",
+    description:
+      "How South African enterprises are reshaping their supply chains with ESG-compliant sourcing strategies and what this means for the broader African market.",
+    publishedAt: "2026-03-10",
+    category: "Trends",
+  },
+  {
+    slug: "iso-14001-certification-guide-african-businesses",
+    title: "ISO 14001 Certification: A Complete Guide for African Businesses",
+    description:
+      "Everything you need to know about achieving ISO 14001 environmental management certification, from preparation to audit and beyond.",
+    publishedAt: "2026-03-12",
+    category: "Certification",
+  },
+  {
+    slug: "esg-scoring-transforming-supplier-selection",
+    title: "How ESG Scoring is Transforming Supplier Selection",
+    description:
+      "Data-driven sustainability scoring is replacing gut-feel procurement decisions. Learn how transparent ESG metrics are levelling the playing field.",
+    publishedAt: "2026-03-15",
+    category: "Insights",
+  },
 ];
 
 // ---------------------------------------------------------------------------

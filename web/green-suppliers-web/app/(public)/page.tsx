@@ -624,8 +624,9 @@ export default async function HomePage() {
             {blogArticles.map((article) => {
               const ArticleIcon = article.Icon;
               return (
-                <article
+                <Link
                   key={article.id}
+                  href={`/guides/${article.slug}`}
                   className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-1"
                 >
                   {/* Image placeholder — gradient with icon */}
@@ -659,7 +660,7 @@ export default async function HomePage() {
                       </span>
                     </div>
                   </div>
-                </article>
+                </Link>
               );
             })}
           </div>
