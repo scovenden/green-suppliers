@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { SearchHero } from "@/components/search/search-hero";
 import { SupplierCard } from "@/components/suppliers/supplier-card";
 import { TrustBadges } from "@/components/suppliers/trust-badges";
@@ -14,6 +15,13 @@ import {
   Users,
   Globe,
   Factory,
+  BookOpen,
+  FileCheck,
+  BarChart3,
+  Clock,
+  Zap,
+  Target,
+  Eye,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -203,6 +211,114 @@ const verificationTiers = [
 ];
 
 // ---------------------------------------------------------------------------
+// UN SDG data
+// ---------------------------------------------------------------------------
+
+const sdgGoals = [
+  {
+    number: 7,
+    name: "Affordable and Clean Energy",
+    color: "#FCC30B",
+    description: "We connect buyers with renewable energy suppliers driving clean power adoption across Africa.",
+  },
+  {
+    number: 9,
+    name: "Industry, Innovation and Infrastructure",
+    color: "#FD6925",
+    description: "Promoting sustainable industrialisation and fostering innovation in green manufacturing.",
+  },
+  {
+    number: 11,
+    name: "Sustainable Cities and Communities",
+    color: "#FD9D24",
+    description: "Listing suppliers who build resilient infrastructure and deliver sustainable urban solutions.",
+  },
+  {
+    number: 12,
+    name: "Responsible Consumption and Production",
+    color: "#BF8B2E",
+    description: "Championing suppliers who minimise waste and adopt circular economy practices.",
+  },
+  {
+    number: 13,
+    name: "Climate Action",
+    color: "#3F7E44",
+    description: "Tracking carbon reporting and supporting suppliers committed to measurable climate targets.",
+  },
+  {
+    number: 14,
+    name: "Life Below Water",
+    color: "#0A97D9",
+    description: "Verifying water management practices and supporting suppliers who protect aquatic ecosystems.",
+  },
+  {
+    number: 15,
+    name: "Life on Land",
+    color: "#56C02B",
+    description: "Promoting sustainable agriculture, forestry, and biodiversity-conscious supply chains.",
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Blog articles data
+// ---------------------------------------------------------------------------
+
+const blogArticles = [
+  {
+    id: "1",
+    slug: "rise-of-green-procurement-south-africa",
+    title: "The Rise of Green Procurement in South Africa",
+    excerpt:
+      "How South African enterprises are reshaping their supply chains with ESG-compliant sourcing strategies and what this means for the broader African market.",
+    category: "Trends",
+    categoryColor: "bg-emerald-100 text-emerald-700",
+    readTime: "5 min read",
+    gradientFrom: "from-emerald-500",
+    gradientTo: "to-green-600",
+    Icon: TrendingUp,
+  },
+  {
+    id: "2",
+    slug: "iso-14001-certification-guide-african-businesses",
+    title: "ISO 14001 Certification: A Complete Guide for African Businesses",
+    excerpt:
+      "Everything you need to know about achieving ISO 14001 environmental management certification, from preparation to audit and beyond.",
+    category: "Guides",
+    categoryColor: "bg-amber-100 text-amber-700",
+    readTime: "8 min read",
+    gradientFrom: "from-amber-500",
+    gradientTo: "to-orange-600",
+    Icon: FileCheck,
+  },
+  {
+    id: "3",
+    slug: "esg-scoring-transforming-supplier-selection",
+    title: "How ESG Scoring is Transforming Supplier Selection",
+    excerpt:
+      "Data-driven sustainability scoring is replacing gut-feel procurement decisions. Learn how transparent ESG metrics are levelling the playing field.",
+    category: "Insights",
+    categoryColor: "bg-blue-100 text-blue-700",
+    readTime: "6 min read",
+    gradientFrom: "from-blue-500",
+    gradientTo: "to-indigo-600",
+    Icon: BarChart3,
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Trust strip partner badges
+// ---------------------------------------------------------------------------
+
+const trustPartners = [
+  { name: "ISO 14001", abbr: "ISO" },
+  { name: "B-Corp", abbr: "B" },
+  { name: "FSC Certified", abbr: "FSC" },
+  { name: "GBCSA", abbr: "GBCSA" },
+  { name: "Carbon Trust", abbr: "CT" },
+  { name: "Fair Trade", abbr: "FT" },
+];
+
+// ---------------------------------------------------------------------------
 // Page component
 // ---------------------------------------------------------------------------
 
@@ -214,10 +330,14 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero section with search */}
+      {/* ================================================================= */}
+      {/* 1. Hero section with search (existing SearchHero) */}
+      {/* ================================================================= */}
       <SearchHero />
 
-      {/* Stats bar — floating above the next section, organic shape */}
+      {/* ================================================================= */}
+      {/* 2. Stats bar — floating above the next section */}
+      {/* ================================================================= */}
       <div className="relative z-10 -mt-7">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-8 rounded-3xl bg-white px-8 py-6 shadow-organic sm:gap-12 md:gap-16">
@@ -248,14 +368,59 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* Trust Badges section */}
+      {/* ================================================================= */}
+      {/* 3. Trust Strip (NEW) */}
+      {/* ================================================================= */}
+      <section className="bg-brand-green-light/60 py-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+            <p className="text-sm font-medium text-gray-600">
+              Trusted by procurement teams across South Africa
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {trustPartners.map((partner) => (
+                <div
+                  key={partner.name}
+                  className="flex items-center gap-1.5 rounded-full border border-green-200/60 bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-gray-600 shadow-sm backdrop-blur-sm"
+                >
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-green/10 text-[9px] font-bold text-brand-green">
+                    {partner.abbr.charAt(0)}
+                  </span>
+                  {partner.name}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Badges section (existing) */}
       <TrustBadges />
 
-      {/* Featured Suppliers */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* ================================================================= */}
+      {/* 4. Featured Suppliers (enhanced with background visual) */}
+      {/* ================================================================= */}
+      <section className="relative overflow-hidden py-20">
+        {/* Background image overlay — solar panels */}
+        <div className="pointer-events-none absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1920&q=80"
+            alt=""
+            fill
+            className="object-cover opacity-[0.03]"
+            sizes="100vw"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white via-white/95 to-white" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-brand-green-light px-3 py-1 text-xs font-semibold text-brand-green">
+              <Award className="h-3.5 w-3.5" />
+              Top Rated
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
               Featured Suppliers
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-lg text-gray-500">
@@ -281,54 +446,97 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Browse by Industry */}
-      <section className="bg-gray-50 py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* ================================================================= */}
+      {/* 5. UN Sustainable Development Goals (NEW - CRITICAL) */}
+      {/* ================================================================= */}
+      <section className="relative overflow-hidden bg-white py-20">
+        {/* Subtle background pattern */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.02]">
+          <div className="absolute inset-0" style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, #16A34A 1px, transparent 0)",
+            backgroundSize: "40px 40px",
+          }} />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">
-              Browse by Industry
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+              <Globe className="h-3.5 w-3.5" />
+              Global Framework
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Aligned with the UN Sustainable Development Goals
             </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-lg text-gray-500">
-              Find verified green suppliers in your sector
+            <p className="mx-auto mt-4 max-w-3xl text-lg leading-relaxed text-gray-500">
+              Every supplier on our platform is assessed against globally recognized sustainability
+              frameworks, ensuring meaningful environmental and social impact.
             </p>
           </div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {industries.map((industry) => (
-              <Link
-                key={industry.slug}
-                href={`/industries/${industry.slug}`}
-                className="group flex flex-col items-center gap-3 rounded-3xl border border-gray-100 bg-white p-6 text-center shadow-sm transition-all duration-300 ease-out hover:border-brand-green/20 hover:shadow-organic hover:-translate-y-1 hover:scale-105"
+          {/* SDG grid */}
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {sdgGoals.map((sdg) => (
+              <div
+                key={sdg.number}
+                className="group flex flex-col overflow-hidden rounded-2xl shadow-sm transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-1"
               >
+                {/* Colored header with large SDG number */}
                 <div
-                  className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${
-                    industryIconBg[industry.slug] ?? "bg-gray-50 text-gray-600"
-                  }`}
+                  className="flex items-center gap-3 px-5 py-4"
+                  style={{ backgroundColor: sdg.color }}
                 >
-                  <span
-                    className="text-2xl"
-                    dangerouslySetInnerHTML={{
-                      __html: industryEmojis[industry.slug] ?? "&#127981;",
-                    }}
-                  />
+                  <span className="text-4xl font-bold text-white/90">
+                    {sdg.number}
+                  </span>
+                  <h3 className="text-sm font-bold leading-tight text-white">
+                    {sdg.name}
+                  </h3>
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900 group-hover:text-brand-green">
-                  {industry.name}
-                </h3>
-                <span className="text-xs text-gray-400">
-                  {industry.count} supplier{industry.count !== 1 ? "s" : ""}
-                </span>
-              </Link>
+
+                {/* Description */}
+                <div className="flex flex-1 flex-col bg-gray-50 p-4">
+                  <p className="text-sm leading-relaxed text-gray-600">
+                    {sdg.description}
+                  </p>
+                </div>
+              </div>
             ))}
+
+            {/* "Why SDGs" summary card */}
+            <div className="flex flex-col justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-6 text-center">
+              <Target className="mx-auto mb-3 h-8 w-8 text-brand-green" />
+              <h3 className="text-sm font-bold text-gray-900">
+                7 SDGs Tracked
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                Our ESG scoring framework maps directly to these UN goals, giving you confidence that every verified supplier contributes to global sustainability targets.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link
+              href="/verification"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-brand-green transition-colors hover:text-brand-green-hover"
+            >
+              Learn More about our SDG Commitment
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* How Verification Works — visual horizontal progress bar */}
-      <section className="py-20">
+      {/* ================================================================= */}
+      {/* 6. How Verification Works (existing) */}
+      {/* ================================================================= */}
+      <section className="bg-gray-50/50 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+              <Shield className="h-3.5 w-3.5" />
+              Transparent Methodology
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
               How Verification Works
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-lg text-gray-500">
@@ -394,7 +602,221 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA — Are You a Green Supplier? with SVG wave divider */}
+      {/* ================================================================= */}
+      {/* 7. Latest from the Green Economy (NEW - Blog Section) */}
+      {/* ================================================================= */}
+      <section className="bg-[#FAFAFA] py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-brand-green">
+              <BookOpen className="h-3.5 w-3.5" />
+              Knowledge Hub
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Latest from the Green Economy
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-lg text-gray-500">
+              Insights, trends, and stories from Africa&apos;s sustainable business community
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {blogArticles.map((article) => {
+              const ArticleIcon = article.Icon;
+              return (
+                <article
+                  key={article.id}
+                  className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-1"
+                >
+                  {/* Image placeholder — gradient with icon */}
+                  <div
+                    className={`relative flex h-48 items-center justify-center bg-gradient-to-br ${article.gradientFrom} ${article.gradientTo}`}
+                  >
+                    <ArticleIcon className="h-16 w-16 text-white/20" />
+                    {/* Category badge overlay */}
+                    <span
+                      className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${article.categoryColor}`}
+                    >
+                      {article.category}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-1 flex-col gap-3 p-5">
+                    <h3 className="text-base font-bold leading-snug text-gray-900 transition-colors group-hover:text-brand-green">
+                      {article.title}
+                    </h3>
+                    <p className="flex-1 text-sm leading-relaxed text-gray-500">
+                      {article.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                      <span className="flex items-center gap-1 text-xs text-gray-400">
+                        <Clock className="h-3.5 w-3.5" />
+                        {article.readTime}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs font-semibold text-brand-green transition-colors group-hover:text-brand-green-hover">
+                        Read More
+                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link
+              href="/guides"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-brand-green transition-colors hover:text-brand-green-hover"
+            >
+              View All Articles
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================= */}
+      {/* 8. Impact By Numbers (NEW) */}
+      {/* ================================================================= */}
+      <section className="relative overflow-hidden">
+        {/* Background image overlay — forest */}
+        <div className="pointer-events-none absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80"
+            alt=""
+            fill
+            className="object-cover opacity-20"
+            sizes="100vw"
+            priority={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0f4c2e]/95 via-brand-green-dark/95 to-brand-emerald/90" />
+        </div>
+
+        <div className="relative py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                Our Impact in Numbers
+              </h2>
+              <p className="mx-auto mt-3 max-w-2xl text-lg text-green-100/70">
+                Measurable progress towards a more sustainable procurement ecosystem
+              </p>
+            </div>
+
+            <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Counter 1: Verified Suppliers */}
+              <div className="flex flex-col items-center gap-2 text-center">
+                <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+                  <Users className="h-7 w-7 text-green-300" />
+                </div>
+                <span className="animate-count-up text-5xl font-extrabold text-white">
+                  50+
+                </span>
+                <span className="text-sm font-medium text-green-200/80">
+                  Verified Suppliers
+                </span>
+              </div>
+
+              {/* Counter 2: Green Industries */}
+              <div className="flex flex-col items-center gap-2 text-center">
+                <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+                  <Factory className="h-7 w-7 text-green-300" />
+                </div>
+                <span className="animate-count-up text-5xl font-extrabold text-white" style={{ animationDelay: "0.15s" }}>
+                  8
+                </span>
+                <span className="text-sm font-medium text-green-200/80">
+                  Green Industries
+                </span>
+              </div>
+
+              {/* Counter 3: African Countries */}
+              <div className="flex flex-col items-center gap-2 text-center">
+                <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+                  <Globe className="h-7 w-7 text-green-300" />
+                </div>
+                <span className="animate-count-up text-5xl font-extrabold text-white" style={{ animationDelay: "0.3s" }}>
+                  10
+                </span>
+                <span className="text-sm font-medium text-green-200/80">
+                  African Countries
+                </span>
+              </div>
+
+              {/* Counter 4: Transparency */}
+              <div className="flex flex-col items-center gap-2 text-center">
+                <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+                  <Eye className="h-7 w-7 text-green-300" />
+                </div>
+                <span className="animate-count-up text-5xl font-extrabold text-white" style={{ animationDelay: "0.45s" }}>
+                  100%
+                </span>
+                <span className="text-sm font-medium text-green-200/80">
+                  Transparency
+                </span>
+              </div>
+            </div>
+
+            <p className="mt-12 text-center text-base font-medium text-green-100/60">
+              Join the movement towards sustainable procurement in Africa
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================= */}
+      {/* 9. Browse by Industry (existing, moved down) */}
+      {/* ================================================================= */}
+      <section className="bg-gray-50 py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-brand-green-light px-3 py-1 text-xs font-semibold text-brand-green">
+              <Zap className="h-3.5 w-3.5" />
+              Explore Sectors
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Browse by Industry
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-lg text-gray-500">
+              Find verified green suppliers in your sector
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {industries.map((industry) => (
+              <Link
+                key={industry.slug}
+                href={`/industries/${industry.slug}`}
+                className="group flex flex-col items-center gap-3 rounded-3xl border border-gray-100 bg-white p-6 text-center shadow-sm transition-all duration-300 ease-out hover:border-brand-green/20 hover:shadow-organic hover:-translate-y-1 hover:scale-105"
+              >
+                <div
+                  className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110 ${
+                    industryIconBg[industry.slug] ?? "bg-gray-50 text-gray-600"
+                  }`}
+                >
+                  <span
+                    className="text-2xl"
+                    dangerouslySetInnerHTML={{
+                      __html: industryEmojis[industry.slug] ?? "&#127981;",
+                    }}
+                  />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 group-hover:text-brand-green">
+                  {industry.name}
+                </h3>
+                <span className="text-xs text-gray-400">
+                  {industry.count} supplier{industry.count !== 1 ? "s" : ""}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================= */}
+      {/* 10. CTA — Are You a Green Supplier? (existing) */}
+      {/* ================================================================= */}
       <section className="relative">
         {/* SVG wave divider at top */}
         <div className="wave-divider relative -mb-px">
