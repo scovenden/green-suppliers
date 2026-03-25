@@ -18,6 +18,7 @@ import { Leaf, Menu } from "lucide-react";
 const navLinks = [
   { label: "Suppliers", href: "/suppliers" },
   { label: "Industries", href: "/industries" },
+  { label: "Countries", href: "/countries/south-africa" },
   { label: "Guides", href: "/guides" },
 ];
 

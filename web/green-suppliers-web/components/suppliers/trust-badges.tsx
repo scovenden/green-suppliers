@@ -1,4 +1,4 @@
-import { Shield, BarChart3, FileCheck, Flag } from "lucide-react";
+import { Shield, BarChart3, FileCheck, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const badges = [
@@ -27,9 +27,9 @@ const badges = [
     borderColor: "border-amber-200/50",
   },
   {
-    icon: Flag,
-    label: "South African",
-    description: "Built for African procurement teams",
+    icon: Globe,
+    label: "SDG Aligned",
+    description: "Mapped to UN Sustainable Development Goals",
     color: "text-forest-green",
     bgColor: "bg-green-50",
     borderColor: "border-green-200/50",

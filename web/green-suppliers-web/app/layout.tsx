@@ -16,12 +16,12 @@ const body = Inter({
 export const metadata: Metadata = {
   title: "Green Suppliers - South Africa's Verified Green Supplier Directory",
   description:
-    "Find verified, ESG-compliant green suppliers across South Africa. Search by industry, certification, and sustainability level.",
+    "Find and contact verified green suppliers across South Africa. Search by industry, ESG level, and certification — free, no sign-up required.",
   metadataBase: new URL("https://greensuppliers.co.za"),
   openGraph: {
     title: "Green Suppliers - South Africa's Verified Green Supplier Directory",
     description:
-      "Find verified, ESG-compliant green suppliers across South Africa. Search by industry, certification, and sustainability level.",
+      "Find and contact verified green suppliers across South Africa. Search by industry, ESG level, and certification — free, no sign-up required.",
     siteName: "Green Suppliers",
     type: "website",
   },

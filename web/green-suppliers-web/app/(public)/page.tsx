@@ -815,6 +815,36 @@ export default async function HomePage() {
       </section>
 
       {/* ================================================================= */}
+      {/* 9b. Buyer CTA — Need Help Finding the Right Green Supplier? */}
+      {/* ================================================================= */}
+      <section className="py-12 bg-white">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-6 rounded-2xl border-l-4 border-l-brand-green bg-white p-6 shadow-organic sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex-1">
+              <h2 className="text-xl font-extrabold tracking-tight text-gray-900 sm:text-2xl">
+                Need Help Finding the Right Green Supplier?
+              </h2>
+              <p className="mt-2 max-w-xl text-base leading-relaxed text-gray-600">
+                Tell us what you&apos;re looking for. Our team will match you with verified suppliers that meet your ESG requirements.
+              </p>
+              <p className="mt-3 text-sm text-gray-400">
+                Free. No obligation. Response within 1 business day.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <Link
+                href="/get-listed"
+                className="inline-flex items-center gap-2 rounded-2xl bg-brand-green px-6 py-3 text-sm font-semibold text-white shadow-md transition-all duration-300 ease-out hover:bg-brand-green-hover hover:shadow-lg hover:scale-[1.02]"
+              >
+                Submit a Supplier Request
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================= */}
       {/* 10. CTA — Are You a Green Supplier? (existing) */}
       {/* ================================================================= */}
       <section className="relative">

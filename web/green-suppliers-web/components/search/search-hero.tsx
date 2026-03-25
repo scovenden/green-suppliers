@@ -12,6 +12,8 @@ const quickFilters = [
   { label: "Sustainable Packaging", query: "sustainable packaging" },
   { label: "Water Solutions", query: "water solutions" },
   { label: "Green Construction", query: "green construction" },
+  { label: "Cape Town", query: "Cape Town" },
+  { label: "Johannesburg", query: "Johannesburg" },
 ];
 
 const industries = [
@@ -152,13 +154,12 @@ export function SearchHero() {
 
           {/* Heading */}
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Find Verified, ESG-Compliant Suppliers You Can Trust
+            Source Verified Green Suppliers Across South Africa — In Minutes
           </h1>
 
           {/* Subtitle */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-green-100/80">
-            Search our curated directory of verified green suppliers across South Africa.
-            Filter by industry, certification, and sustainability level.
+            Cut weeks of supplier due diligence. Search by industry, ESG level, and verified certification — every supplier independently assessed.
           </p>
 
           {/* Search bar — enlarged primary CTA */}
@@ -221,9 +222,10 @@ export function SearchHero() {
                 type="submit"
                 className="h-14 rounded-2xl bg-gradient-to-r from-brand-green to-brand-emerald px-8 text-base font-semibold text-white shadow-lg transition-all duration-300 ease-out hover:from-brand-green-hover hover:to-brand-emerald-hover hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
-                Search
+                Find Suppliers
               </button>
             </div>
+            <p className="text-white/70 text-sm mt-3">Free to search. No account required.</p>
           </form>
 
           {/* Popular searches animated pills */}
