@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20'
+
+jobs:
+  backend:
+    name: Backend (Build + Test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore GreenSuppliers.sln
+
+      - name: Build
+        run: dotnet build GreenSuppliers.sln --no-restore --configuration Release
+
+      - name: Test with coverage
+        run: dotnet test GreenSuppliers.sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: ./coverage/**/coverage.cobertura.xml
+
+  frontend:
+    name: Frontend (Build + Type Check)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/green-suppliers-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/green-suppliers-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.greensuppliers.co.za/api/v1
+
+  deploy-api:
+    name: Deploy API to Azure
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish API
+        run: dotnet publish src/GreenSuppliers.Api/GreenSuppliers.Api.csproj --configuration Release --output ./publish/api
+
+      - name: Publish Worker
+        run: dotnet publish src/GreenSuppliers.Worker/GreenSuppliers.Worker.csproj --configuration Release --output ./publish/worker
+
+      - name: Deploy API to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_API_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+          package: ./publish/api
+
+      - name: Deploy Worker to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WORKER_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WORKER_PUBLISH_PROFILE }}
+          package: ./publish/worker
