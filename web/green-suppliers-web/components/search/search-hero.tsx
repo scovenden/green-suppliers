@@ -179,7 +179,7 @@ export function SearchHero() {
                   placeholder="Search suppliers, services, certifications..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onFocus={() => setShowSuggestions(true)}
+                  onFocus={() => { if (searchTerm.trim().length > 0) setShowSuggestions(true); }}
                   className="h-14 w-full rounded-2xl bg-white/10 pl-12 pr-4 text-base text-white placeholder:text-white/50 outline-none transition-colors focus:bg-white/15"
                   autoComplete="off"
                 />
