@@ -19,6 +19,14 @@ public class AdminTaxonomyController : ControllerBase
 
     // --- Industries ---
 
+    [HttpGet("industries")]
+    [HttpGet("/api/v1/admin/industries")]
+    public async Task<IActionResult> GetIndustries(CancellationToken ct)
+    {
+        var industries = await _taxonomyService.GetIndustriesAsync(activeOnly: false);
+        return Ok(ApiResponse<List<IndustryDto>>.Ok(industries));
+    }
+
     [HttpPost("industries")]
     public async Task<IActionResult> CreateIndustry([FromBody] CreateIndustryRequest request, CancellationToken ct)
     {
@@ -39,6 +47,14 @@ public class AdminTaxonomyController : ControllerBase
 
     // --- Certification Types ---
 
+    [HttpGet("certification-types")]
+    [HttpGet("/api/v1/admin/certification-types")]
+    public async Task<IActionResult> GetCertTypes(CancellationToken ct)
+    {
+        var certTypes = await _taxonomyService.GetCertTypesAsync(activeOnly: false);
+        return Ok(ApiResponse<List<CertTypeDto>>.Ok(certTypes));
+    }
+
     [HttpPost("certification-types")]
     public async Task<IActionResult> CreateCertType([FromBody] CreateCertTypeRequest request, CancellationToken ct)
     {
@@ -58,6 +74,14 @@ public class AdminTaxonomyController : ControllerBase
     }
 
     // --- Service Tags ---
+
+    [HttpGet("service-tags")]
+    [HttpGet("/api/v1/admin/service-tags")]
+    public async Task<IActionResult> GetServiceTags(CancellationToken ct)
+    {
+        var tags = await _taxonomyService.GetServiceTagsAsync(activeOnly: false);
+        return Ok(ApiResponse<List<ServiceTagDto>>.Ok(tags));
+    }
 
     [HttpPost("service-tags")]
     public async Task<IActionResult> CreateServiceTag([FromBody] CreateServiceTagRequest request, CancellationToken ct)
