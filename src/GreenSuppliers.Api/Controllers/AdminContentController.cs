@@ -17,6 +17,13 @@ public class AdminContentController : ControllerBase
         _contentService = contentService;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
+    {
+        var result = await _contentService.GetAllAsync(page, pageSize);
+        return Ok(ApiResponse<PagedResult<ContentPageDto>>.Ok(result));
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateContentRequest request, CancellationToken ct)
     {

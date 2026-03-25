@@ -21,23 +21,19 @@ import { apiGet } from "@/lib/api-client";
 // Fallback data for when API is unreachable
 // ---------------------------------------------------------------------------
 
+// Phase 1: South Africa only
 const fallbackCountries: Country[] = [
-  { code: "ZA", name: "South Africa", slug: "south-africa", region: "Southern Africa", isActive: true, supplierCount: 30 },
-  { code: "KE", name: "Kenya", slug: "kenya", region: "East Africa", isActive: true, supplierCount: 5 },
-  { code: "NG", name: "Nigeria", slug: "nigeria", region: "West Africa", isActive: true, supplierCount: 4 },
-  { code: "GH", name: "Ghana", slug: "ghana", region: "West Africa", isActive: true, supplierCount: 3 },
-  { code: "EG", name: "Egypt", slug: "egypt", region: "North Africa", isActive: true, supplierCount: 2 },
+  { code: "ZA", name: "South Africa", slug: "south-africa", region: "Southern Africa", isActive: true, supplierCount: 15 },
 ];
 
+// Real industries matching database
 const fallbackIndustries: Industry[] = [
-  { id: "1", name: "Renewable Energy", slug: "renewable-energy", description: null, parentId: null, sortOrder: 1, isActive: true, supplierCount: 12 },
-  { id: "2", name: "Waste Management", slug: "waste-management", description: null, parentId: null, sortOrder: 2, isActive: true, supplierCount: 9 },
-  { id: "3", name: "Sustainable Agriculture", slug: "sustainable-agriculture", description: null, parentId: null, sortOrder: 3, isActive: true, supplierCount: 7 },
-  { id: "4", name: "Green Construction", slug: "green-construction", description: null, parentId: null, sortOrder: 4, isActive: true, supplierCount: 8 },
-  { id: "5", name: "Eco Packaging", slug: "eco-packaging", description: null, parentId: null, sortOrder: 5, isActive: true, supplierCount: 6 },
-  { id: "6", name: "Water Solutions", slug: "water-solutions", description: null, parentId: null, sortOrder: 6, isActive: true, supplierCount: 5 },
-  { id: "7", name: "Carbon Management", slug: "carbon-management", description: null, parentId: null, sortOrder: 7, isActive: true, supplierCount: 4 },
-  { id: "8", name: "Sustainable Transport", slug: "sustainable-transport", description: null, parentId: null, sortOrder: 8, isActive: true, supplierCount: 3 },
+  { id: "1", name: "Renewable Energy", slug: "renewable-energy", description: null, parentId: null, sortOrder: 1, isActive: true, supplierCount: 4 },
+  { id: "2", name: "Construction", slug: "construction", description: null, parentId: null, sortOrder: 2, isActive: true, supplierCount: 3 },
+  { id: "3", name: "Agriculture", slug: "agriculture", description: null, parentId: null, sortOrder: 3, isActive: true, supplierCount: 1 },
+  { id: "4", name: "Waste Management", slug: "waste-management", description: null, parentId: null, sortOrder: 4, isActive: true, supplierCount: 5 },
+  { id: "5", name: "Water Solutions", slug: "water-solutions", description: null, parentId: null, sortOrder: 5, isActive: true, supplierCount: 2 },
+  { id: "6", name: "Manufacturing", slug: "manufacturing", description: null, parentId: null, sortOrder: 6, isActive: true, supplierCount: 8 },
 ];
 
 const esgLevels = ["bronze", "silver", "gold", "platinum"] as const;

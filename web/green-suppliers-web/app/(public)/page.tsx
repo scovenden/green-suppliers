@@ -344,9 +344,9 @@ export default async function HomePage() {
             <div className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-brand-green" />
-                <span className="animate-stat-pulse text-2xl font-extrabold text-gray-900">50+</span>
+                <span className="animate-stat-pulse text-2xl font-extrabold text-gray-900">15</span>
               </div>
-              <span className="text-sm text-gray-500">Suppliers</span>
+              <span className="text-sm text-gray-500">Verified Suppliers</span>
             </div>
             <div className="h-8 w-px bg-gray-200" />
             <div className="flex flex-col items-center gap-1">
@@ -360,9 +360,9 @@ export default async function HomePage() {
             <div className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-brand-green" />
-                <span className="animate-stat-pulse text-2xl font-extrabold text-gray-900" style={{ animationDelay: "1s" }}>10</span>
+                <span className="animate-stat-pulse text-2xl font-extrabold text-gray-900" style={{ animationDelay: "1s" }}>1</span>
               </div>
-              <span className="text-sm text-gray-500">Countries</span>
+              <span className="text-sm text-gray-500">Country</span>
             </div>
           </div>
         </div>
@@ -712,7 +712,7 @@ export default async function HomePage() {
                   <Users className="h-7 w-7 text-green-300" />
                 </div>
                 <span className="animate-count-up text-5xl font-extrabold text-white">
-                  50+
+                  15
                 </span>
                 <span className="text-sm font-medium text-green-200/80">
                   Verified Suppliers
@@ -738,10 +738,10 @@ export default async function HomePage() {
                   <Globe className="h-7 w-7 text-green-300" />
                 </div>
                 <span className="animate-count-up text-5xl font-extrabold text-white" style={{ animationDelay: "0.3s" }}>
-                  10
+                  1
                 </span>
                 <span className="text-sm font-medium text-green-200/80">
-                  African Countries
+                  Country (South Africa)
                 </span>
               </div>
 

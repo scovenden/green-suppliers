@@ -140,7 +140,7 @@ async function searchSuppliers(params: SearchParams) {
     query.set("verificationStatus", params.verificationStatus);
   const page = parseInt(params.page ?? "1", 10);
   query.set("page", String(Math.max(1, page)));
-  query.set("pageSize", "12");
+  query.set("pageSize", "20");
 
   try {
     const res = await apiGet<SearchResponse>(
