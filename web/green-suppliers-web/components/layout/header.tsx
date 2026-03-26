@@ -33,7 +33,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-green">
-            <Leaf className="h-5 w-5 text-white" />
+            <Leaf className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
           <span className="text-lg font-extrabold tracking-tight text-white">
             Green<span className="text-green-300">Suppliers</span>
@@ -41,7 +41,7 @@ export function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}

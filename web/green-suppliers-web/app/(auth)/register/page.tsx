@@ -31,7 +31,7 @@ export default function RegisterPage() {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-green-light text-brand-green transition-colors group-hover:bg-brand-green group-hover:text-white">
-                  <Building2 className="h-6 w-6" />
+                  <Building2 className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div>
                   <CardTitle className="text-lg">
@@ -46,15 +46,15 @@ export default function RegisterPage() {
             <CardContent>
               <ul className="flex flex-col gap-1.5 text-sm text-brand-earth">
                 <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand-green" />
                   Showcase your ESG credentials
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand-green" />
                   Get verified and earn trust badges
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand-green" />
                   Receive leads from enterprise buyers
                 </li>
               </ul>
@@ -67,7 +67,7 @@ export default function RegisterPage() {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-brand-emerald transition-colors group-hover:bg-brand-emerald group-hover:text-white">
-                  <Search className="h-6 w-6" />
+                  <Search className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div>
                   <CardTitle className="text-lg">I&apos;m a Buyer</CardTitle>
@@ -80,15 +80,15 @@ export default function RegisterPage() {
             <CardContent>
               <ul className="flex flex-col gap-1.5 text-sm text-brand-earth">
                 <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-emerald" />
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand-emerald" />
                   Search verified sustainable suppliers
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-emerald" />
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand-emerald" />
                   Compare ESG scores and certifications
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-emerald" />
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-brand-emerald" />
                   Contact suppliers directly
                 </li>
               </ul>

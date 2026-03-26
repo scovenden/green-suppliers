@@ -53,21 +53,21 @@ function VerifyEmailContent() {
     <Card>
       <CardContent className="flex flex-col items-center gap-4 py-10">
         {status === "loading" && (
-          <>
-            <Loader2 className="h-10 w-10 animate-spin text-brand-green" />
+          <div role="status" aria-label="Verifying your email" className="flex flex-col items-center gap-4">
+            <Loader2 className="h-10 w-10 animate-spin text-brand-green" aria-hidden="true" />
             <h2 className="text-lg font-bold text-brand-dark">
               Verifying your email...
             </h2>
             <p className="text-sm text-brand-earth">
               Please wait while we confirm your account.
             </p>
-          </>
+          </div>
         )}
 
         {status === "success" && (
           <>
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-green-light">
-              <CheckCircle className="h-8 w-8 text-brand-green" />
+              <CheckCircle className="h-8 w-8 text-brand-green" aria-hidden="true" />
             </div>
             <h2 className="text-xl font-bold text-brand-dark">
               Email Verified!
@@ -87,7 +87,7 @@ function VerifyEmailContent() {
         {status === "error" && (
           <>
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
-              <XCircle className="h-8 w-8 text-red-500" />
+              <XCircle className="h-8 w-8 text-red-500" aria-hidden="true" />
             </div>
             <h2 className="text-xl font-bold text-brand-dark">
               Verification Failed
@@ -118,7 +118,9 @@ export default function VerifyEmailPage() {
       fallback={
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-10">
-            <Loader2 className="h-10 w-10 animate-spin text-brand-green" />
+            <div role="status" aria-label="Loading">
+              <Loader2 className="h-10 w-10 animate-spin text-brand-green" aria-hidden="true" />
+            </div>
             <h2 className="text-lg font-bold text-brand-dark">Loading...</h2>
           </CardContent>
         </Card>

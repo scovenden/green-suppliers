@@ -9,6 +9,7 @@ import {
   resetPasswordSchema,
   type ResetPasswordFormData,
 } from "@/lib/validators";
+import { getPasswordStrength } from "@/lib/password-strength";
 import { apiPost } from "@/lib/api-client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,22 +21,6 @@ import {
   Loader2,
   KeyRound,
 } from "lucide-react";
-
-function getPasswordStrength(
-  password: string
-): { score: number; label: string; color: string } {
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 2) return { score, label: "Weak", color: "bg-red-500" };
-  if (score <= 3) return { score, label: "Fair", color: "bg-yellow-500" };
-  if (score <= 4) return { score, label: "Good", color: "bg-brand-green" };
-  return { score, label: "Strong", color: "bg-brand-green" };
-}
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
@@ -98,7 +83,7 @@ function ResetPasswordContent() {
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-10">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
-            <AlertCircle className="h-8 w-8 text-red-500" />
+            <AlertCircle className="h-8 w-8 text-red-500" aria-hidden="true" />
           </div>
           <h2 className="text-xl font-bold text-brand-dark">
             Invalid Reset Link
@@ -122,7 +107,7 @@ function ResetPasswordContent() {
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-10">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-green-light">
-            <CheckCircle className="h-8 w-8 text-brand-green" />
+            <CheckCircle className="h-8 w-8 text-brand-green" aria-hidden="true" />
           </div>
           <h2 className="text-xl font-bold text-brand-dark">
             Password Reset!
@@ -146,7 +131,7 @@ function ResetPasswordContent() {
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green-light text-brand-green">
-            <KeyRound className="h-5 w-5" />
+            <KeyRound className="h-5 w-5" aria-hidden="true" />
           </div>
           <CardTitle className="text-xl">Reset Password</CardTitle>
         </div>
@@ -158,41 +143,62 @@ function ResetPasswordContent() {
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-4"
+          noValidate
         >
           {status === "error" && errorMessage && (
-            <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              {errorMessage}
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{errorMessage}</span>
             </div>
           )}
 
           {/* New Password */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="newPassword">
-              New Password <span className="text-red-500">*</span>
+              New Password <span aria-hidden="true" className="text-red-500">*</span>
             </Label>
             <Input
               id="newPassword"
               type="password"
               placeholder="Enter your new password"
+              aria-required="true"
               aria-invalid={!!errors.newPassword}
+              aria-describedby={
+                [
+                  errors.newPassword ? "newPassword-error" : null,
+                  passwordValue.length > 0 ? "newPassword-strength" : null,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || undefined
+              }
+              autoComplete="new-password"
               {...register("newPassword")}
             />
             {passwordValue.length > 0 && (
               <div className="flex items-center gap-2">
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
+                <div
+                  className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200"
+                  role="meter"
+                  aria-valuenow={strength.score}
+                  aria-valuemin={0}
+                  aria-valuemax={5}
+                  aria-label="Password strength"
+                >
                   <div
                     className={`h-full rounded-full transition-all ${strength.color}`}
                     style={{ width: `${(strength.score / 5) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs text-brand-earth">
+                <span id="newPassword-strength" aria-live="polite" className="text-xs text-brand-earth">
                   {strength.label}
                 </span>
               </div>
             )}
             {errors.newPassword && (
-              <p className="text-xs text-red-500">
+              <p id="newPassword-error" role="alert" className="text-xs text-red-500">
                 {errors.newPassword.message}
               </p>
             )}
@@ -201,17 +207,20 @@ function ResetPasswordContent() {
           {/* Confirm Password */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="confirmPassword">
-              Confirm Password <span className="text-red-500">*</span>
+              Confirm Password <span aria-hidden="true" className="text-red-500">*</span>
             </Label>
             <Input
               id="confirmPassword"
               type="password"
               placeholder="Confirm your new password"
+              aria-required="true"
               aria-invalid={!!errors.confirmPassword}
+              aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
+              autoComplete="new-password"
               {...register("confirmPassword")}
             />
             {errors.confirmPassword && (
-              <p className="text-xs text-red-500">
+              <p id="confirmPassword-error" role="alert" className="text-xs text-red-500">
                 {errors.confirmPassword.message}
               </p>
             )}
@@ -225,7 +234,7 @@ function ResetPasswordContent() {
           >
             {status === "submitting" ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 Resetting...
               </>
             ) : (
@@ -254,7 +263,7 @@ export default function ResetPasswordPage() {
       fallback={
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-10">
-            <Loader2 className="h-10 w-10 animate-spin text-brand-green" />
+            <Loader2 className="h-10 w-10 animate-spin text-brand-green" aria-hidden="true" />
             <h2 className="text-lg font-bold text-brand-dark">Loading...</h2>
           </CardContent>
         </Card>

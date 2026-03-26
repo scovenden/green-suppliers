@@ -149,8 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           success: false,
           error: res.error?.message ?? "Invalid credentials",
         };
-      } catch (err) {
-        console.error("Login error:", err);
+      } catch {
         return { success: false, error: "Network error. Please try again." };
       }
     },

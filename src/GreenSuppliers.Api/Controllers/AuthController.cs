@@ -39,32 +39,33 @@ public class AuthController : ControllerBase
             return Unauthorized(ApiResponse<LoginResponse>.Fail("INVALID_CREDENTIALS", "Invalid email or password."));
         }
 
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(
-            u => u.Email == request.Email && !u.IsDeleted,
+            u => u.Email == normalizedEmail && !u.IsDeleted,
             cancellationToken);
 
         if (user is null)
         {
-            _logger.LogWarning("Login attempt for non-existent email: {Email}", request.Email);
+            _logger.LogWarning("Login attempt for non-existent email: {Email}", normalizedEmail);
             return Unauthorized(ApiResponse<LoginResponse>.Fail("INVALID_CREDENTIALS", "Invalid email or password."));
         }
 
         if (!user.IsActive)
         {
-            _logger.LogWarning("Login attempt for inactive user: {Email}", request.Email);
+            _logger.LogWarning("Login attempt for inactive user: {Email}", normalizedEmail);
             return Unauthorized(ApiResponse<LoginResponse>.Fail("INVALID_CREDENTIALS", "Invalid email or password."));
         }
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            _logger.LogWarning("Failed login attempt for user: {Email}", request.Email);
+            _logger.LogWarning("Failed login attempt for user: {Email}", normalizedEmail);
             return Unauthorized(ApiResponse<LoginResponse>.Fail("INVALID_CREDENTIALS", "Invalid email or password."));
         }
 
         // Check email verification
         if (!user.EmailVerified)
         {
-            _logger.LogWarning("Login attempt for unverified email: {Email}", request.Email);
+            _logger.LogWarning("Login attempt for unverified email: {Email}", normalizedEmail);
             return StatusCode(403, ApiResponse<LoginResponse>.Fail("EMAIL_NOT_VERIFIED", "Please verify your email address before logging in."));
         }
 
@@ -74,7 +75,7 @@ public class AuthController : ControllerBase
 
         var response = _jwtTokenService.GenerateTokens(user);
 
-        _logger.LogInformation("User {Email} logged in successfully", request.Email);
+        _logger.LogInformation("User {Email} logged in successfully", normalizedEmail);
 
         return Ok(ApiResponse<LoginResponse>.Ok(response));
     }
@@ -119,27 +120,21 @@ public class AuthController : ControllerBase
     {
         var (success, error) = await _accountService.RegisterAsync(request, cancellationToken);
 
-        if (!success)
+        if (!success && error != "EMAIL_EXISTS")
         {
-            if (error == "EMAIL_EXISTS")
-            {
-                return Conflict(ApiResponse<object>.Fail("EMAIL_EXISTS", "An account with this email address already exists."));
-            }
-
             return BadRequest(ApiResponse<object>.Fail("REGISTRATION_FAILED", error ?? "Registration failed."));
         }
 
+        // Always return 201 to prevent email enumeration.
+        // If the email already exists, the user receives no verification email,
+        // and the response is indistinguishable from a successful registration.
         return StatusCode(201, ApiResponse<object>.Ok(new { message = "Registration successful. Please check your email to verify your account." }));
     }
 
     [HttpPost("verify-email")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Token))
-        {
-            return BadRequest(ApiResponse<object>.Fail("INVALID_TOKEN", "Verification token is required."));
-        }
-
+        // Validation handled by VerifyEmailRequestValidator via FluentValidation auto-validation
         var success = await _accountService.VerifyEmailAsync(request.Token, cancellationToken);
 
         if (!success)
@@ -153,11 +148,7 @@ public class AuthController : ControllerBase
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Email))
-        {
-            return BadRequest(ApiResponse<object>.Fail("INVALID_EMAIL", "Email is required."));
-        }
-
+        // Validation handled by ForgotPasswordRequestValidator via FluentValidation auto-validation
         await _accountService.ForgotPasswordAsync(request.Email, cancellationToken);
 
         // Always return success to prevent email enumeration

@@ -66,6 +66,14 @@ public class UserConfig : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email)
             .IsUnique();
 
+        // Filtered index for token lookups (used by VerifyEmailAsync)
+        builder.HasIndex(u => u.EmailVerificationToken)
+            .HasFilter("[EmailVerificationToken] IS NOT NULL");
+
+        // Filtered index for token lookups (used by ResetPasswordAsync)
+        builder.HasIndex(u => u.PasswordResetToken)
+            .HasFilter("[PasswordResetToken] IS NOT NULL");
+
         // Filtered index
         builder.HasIndex(u => u.OrganizationId)
             .HasFilter("[IsDeleted] = 0");

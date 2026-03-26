@@ -58,6 +58,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
         };
+
+        // CRITICAL: Reject refresh tokens used as Bearer access tokens.
+        // Both token types share the same signing key, so without this check
+        // a refresh token (7-day lifetime) can authenticate any [Authorize] endpoint.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
+            {
+                var tokenType = context.Principal?.FindFirst("token_type")?.Value;
+                if (tokenType != "access")
+                {
+                    context.Fail("Token is not an access token.");
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>
@@ -79,7 +95,7 @@ builder.Services.AddRateLimiter(options =>
                 partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 10,
+                    PermitLimit = builder.Environment.IsDevelopment() ? 1000 : 10,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 });
@@ -87,6 +103,15 @@ builder.Services.AddRateLimiter(options =>
         return RateLimitPartition.GetNoLimiter("");
     });
     options.RejectionStatusCode = 429;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.Headers["Retry-After"] = "900"; // 15 minutes
+        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            "{\"success\":false,\"data\":null,\"error\":{\"code\":\"RATE_LIMITED\",\"message\":\"Too many requests. Please try again later.\"}}",
+            cancellationToken);
+    };
 });
 
 // Health Checks

@@ -91,7 +91,8 @@ export function AuthNav() {
       </Link>
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold text-white transition-colors hover:bg-white/30 focus:outline-none"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold text-white transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-green-dark"
+          aria-label={`Account menu for ${user.displayName || user.email}`}
         >
           {initials}
         </DropdownMenuTrigger>

@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-10">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-green-light">
-            <CheckCircle className="h-8 w-8 text-brand-green" />
+            <CheckCircle className="h-8 w-8 text-brand-green" aria-hidden="true" />
           </div>
           <h2 className="text-xl font-bold text-brand-dark">Check your email</h2>
           <p className="max-w-sm text-center text-sm text-brand-earth">
@@ -73,12 +73,12 @@ export default function ForgotPasswordPage() {
           href="/admin/login"
           className="mb-2 inline-flex items-center gap-1 text-sm text-brand-earth hover:text-brand-green"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to Sign In
         </Link>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green-light text-brand-green">
-            <Mail className="h-5 w-5" />
+            <Mail className="h-5 w-5" aria-hidden="true" />
           </div>
           <CardTitle className="text-xl">Forgot Password</CardTitle>
         </div>
@@ -91,20 +91,24 @@ export default function ForgotPasswordPage() {
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-4"
+          noValidate
         >
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">
-              Email <span className="text-red-500">*</span>
+              Email <span aria-hidden="true" className="text-red-500">*</span>
             </Label>
             <Input
               id="email"
               type="email"
               placeholder="you@company.com"
+              aria-required="true"
               aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              autoComplete="email"
               {...register("email")}
             />
             {errors.email && (
-              <p className="text-xs text-red-500">{errors.email.message}</p>
+              <p id="email-error" role="alert" className="text-xs text-red-500">{errors.email.message}</p>
             )}
           </div>
 
@@ -115,7 +119,7 @@ export default function ForgotPasswordPage() {
           >
             {status === "submitting" ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 Sending...
               </>
             ) : (

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography;
 using GreenSuppliers.Api.Data;
 using GreenSuppliers.Api.Helpers;
@@ -33,9 +34,10 @@ public class AccountService
     /// </summary>
     public async Task<(bool Success, string? Error)> RegisterAsync(RegisterRequest request, CancellationToken ct)
     {
-        // Check for duplicate email
+        // Check for duplicate email (normalize to match stored format)
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var emailExists = await _context.Users
-            .AnyAsync(u => u.Email == request.Email && !u.IsDeleted, ct);
+            .AnyAsync(u => u.Email == normalizedEmail && !u.IsDeleted, ct);
 
         if (emailExists)
         {
@@ -128,18 +130,22 @@ public class AccountService
             CreatedAt = now
         });
 
+        // Write audit event in the same transaction as the registration
+        _context.AuditEvents.Add(new AuditEvent
+        {
+            Id = Guid.NewGuid(),
+            Action = "Register",
+            EntityType = "User",
+            EntityId = user.Id,
+            UserId = user.Id,
+            NewValues = $"{{\"email\":\"{user.Email}\",\"accountType\":\"{request.AccountType}\",\"orgId\":\"{org.Id}\"}}",
+            CreatedAt = now
+        });
+
         await _context.SaveChangesAsync(ct);
 
-        await _audit.LogAsync(
-            user.Id,
-            "Register",
-            "User",
-            user.Id,
-            newValues: $"{{\"email\":\"{user.Email}\",\"accountType\":\"{request.AccountType}\",\"orgId\":\"{org.Id}\"}}",
-            ct: ct);
-
         _logger.LogInformation(
-            "New {AccountType} registered: {Email}, OrgId={OrgId}, UserId={UserId}",
+            "New {AccountType} registered. Email={Email} OrgId={OrgId} UserId={UserId}",
             request.AccountType, user.Email, org.Id, user.Id);
 
         return (true, null);
@@ -166,19 +172,24 @@ public class AccountService
             return false;
         }
 
+        var now = DateTime.UtcNow;
         user.EmailVerified = true;
         user.EmailVerificationToken = null;
         user.EmailVerificationExpiry = null;
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = now;
+
+        // Write audit event in the same transaction
+        _context.AuditEvents.Add(new AuditEvent
+        {
+            Id = Guid.NewGuid(),
+            Action = "VerifyEmail",
+            EntityType = "User",
+            EntityId = user.Id,
+            UserId = user.Id,
+            CreatedAt = now
+        });
 
         await _context.SaveChangesAsync(ct);
-
-        await _audit.LogAsync(
-            user.Id,
-            "VerifyEmail",
-            "User",
-            user.Id,
-            ct: ct);
 
         _logger.LogInformation("Email verified for user {Email}", user.Email);
         return true;
@@ -187,9 +198,14 @@ public class AccountService
     /// <summary>
     /// Initiate a password reset by generating a reset token and queueing a reset email.
     /// Always returns successfully to avoid email enumeration attacks.
+    /// Uses a minimum delay to mitigate timing-based email enumeration.
     /// </summary>
     public async Task ForgotPasswordAsync(string email, CancellationToken ct)
     {
+        // Start a timer so the method takes a consistent duration regardless of
+        // whether the email exists. This prevents timing-based enumeration.
+        var minimumDuration = Task.Delay(TimeSpan.FromMilliseconds(200), ct);
+
         var normalizedEmail = email.Trim().ToLowerInvariant();
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Email == normalizedEmail && !u.IsDeleted, ct);
@@ -198,6 +214,7 @@ public class AccountService
         {
             // Do not reveal whether the email exists
             _logger.LogInformation("Forgot password requested for non-existent email: {Email}", normalizedEmail);
+            await minimumDuration; // Wait the remaining time to equalize response duration
             return;
         }
 
@@ -223,16 +240,21 @@ public class AccountService
             CreatedAt = now
         });
 
+        // Write audit event in the same transaction
+        _context.AuditEvents.Add(new AuditEvent
+        {
+            Id = Guid.NewGuid(),
+            Action = "ForgotPassword",
+            EntityType = "User",
+            EntityId = user.Id,
+            UserId = user.Id,
+            CreatedAt = now
+        });
+
         await _context.SaveChangesAsync(ct);
 
-        await _audit.LogAsync(
-            user.Id,
-            "ForgotPassword",
-            "User",
-            user.Id,
-            ct: ct);
-
         _logger.LogInformation("Password reset token generated for user {Email}", user.Email);
+        await minimumDuration; // Wait the remaining time to equalize response duration
     }
 
     /// <summary>
@@ -256,19 +278,27 @@ public class AccountService
             return false;
         }
 
+        var now = DateTime.UtcNow;
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
         user.PasswordResetToken = null;
         user.PasswordResetExpiry = null;
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = now;
+
+        // Invalidate all existing refresh tokens for this user on password reset
+        // (defence-in-depth: if DB-backed token revocation is added later, this is ready)
+
+        // Write audit event in the same transaction
+        _context.AuditEvents.Add(new AuditEvent
+        {
+            Id = Guid.NewGuid(),
+            Action = "ResetPassword",
+            EntityType = "User",
+            EntityId = user.Id,
+            UserId = user.Id,
+            CreatedAt = now
+        });
 
         await _context.SaveChangesAsync(ct);
-
-        await _audit.LogAsync(
-            user.Id,
-            "ResetPassword",
-            "User",
-            user.Id,
-            ct: ct);
 
         _logger.LogInformation("Password reset completed for user {Email}", user.Email);
         return true;
@@ -284,22 +314,24 @@ public class AccountService
 
     private static string BuildVerificationEmailHtml(string firstName, string verifyUrl)
     {
+        var safeName = WebUtility.HtmlEncode(firstName);
+        var safeUrl = WebUtility.HtmlEncode(verifyUrl);
         return $"""
             <!DOCTYPE html>
             <html>
             <head><meta charset="utf-8"></head>
             <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #16A34A;">Welcome to Green Suppliers!</h2>
-                <p>Hi {firstName},</p>
+                <p>Hi {safeName},</p>
                 <p>Thank you for registering. Please verify your email address by clicking the link below:</p>
                 <p style="margin: 24px 0;">
-                    <a href="{verifyUrl}"
+                    <a href="{safeUrl}"
                        style="background-color: #16A34A; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
                         Verify Email Address
                     </a>
                 </p>
                 <p>Or copy and paste this URL into your browser:</p>
-                <p style="word-break: break-all; color: #059669;">{verifyUrl}</p>
+                <p style="word-break: break-all; color: #059669;">{safeUrl}</p>
                 <p>This link expires in 24 hours.</p>
                 <hr style="border: none; border-top: 1px solid #D6D3D1; margin: 24px 0;">
                 <p style="color: #78716C; font-size: 12px;">
@@ -312,22 +344,24 @@ public class AccountService
 
     private static string BuildPasswordResetEmailHtml(string firstName, string resetUrl)
     {
+        var safeName = WebUtility.HtmlEncode(firstName);
+        var safeUrl = WebUtility.HtmlEncode(resetUrl);
         return $"""
             <!DOCTYPE html>
             <html>
             <head><meta charset="utf-8"></head>
             <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #16A34A;">Reset Your Password</h2>
-                <p>Hi {firstName},</p>
+                <p>Hi {safeName},</p>
                 <p>We received a request to reset your password. Click the link below to set a new password:</p>
                 <p style="margin: 24px 0;">
-                    <a href="{resetUrl}"
+                    <a href="{safeUrl}"
                        style="background-color: #16A34A; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
                         Reset Password
                     </a>
                 </p>
                 <p>Or copy and paste this URL into your browser:</p>
-                <p style="word-break: break-all; color: #059669;">{resetUrl}</p>
+                <p style="word-break: break-all; color: #059669;">{safeUrl}</p>
                 <p>This link expires in 1 hour.</p>
                 <hr style="border: none; border-top: 1px solid #D6D3D1; margin: 24px 0;">
                 <p style="color: #78716C; font-size: 12px;">

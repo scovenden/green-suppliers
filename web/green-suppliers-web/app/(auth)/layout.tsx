@@ -13,7 +13,7 @@ export default function AuthLayout({
         <div className="mb-8">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green transition-transform group-hover:scale-105">
-              <Leaf className="h-6 w-6 text-white" />
+              <Leaf className="h-6 w-6 text-white" aria-hidden="true" />
             </div>
             <span className="text-2xl font-extrabold tracking-tight text-brand-dark">
               Green<span className="text-brand-green">Suppliers</span>
