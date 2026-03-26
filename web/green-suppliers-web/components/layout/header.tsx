@@ -13,6 +13,7 @@ import {
   SheetDescription,
   SheetClose,
 } from "@/components/ui/sheet";
+import { AuthNav, AuthNavMobile } from "@/components/layout/auth-nav";
 import { Leaf, Menu } from "lucide-react";
 
 const navLinks = [
@@ -56,14 +57,9 @@ export function Header() {
           ))}
         </nav>
 
-        {/* Desktop actions */}
+        {/* Desktop actions — auth-aware */}
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="/admin"
-            className="text-sm font-medium text-white/70 transition-colors hover:text-white"
-          >
-            Sign In
-          </Link>
+          <AuthNav />
           <Link href="/get-listed">
             <Button
               className="bg-gradient-to-r from-brand-green to-brand-emerald text-white font-semibold shadow-md hover:from-brand-green-hover hover:to-brand-emerald-hover"
@@ -110,13 +106,7 @@ export function Header() {
                   </SheetClose>
                 ))}
                 <div className="my-3 h-px bg-white/10" />
-                <Link
-                  href="/admin"
-                  onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-                >
-                  Sign In
-                </Link>
+                <AuthNavMobile onNavigate={() => setOpen(false)} />
                 <Link
                   href="/get-listed"
                   onClick={() => setOpen(false)}

@@ -20,6 +20,9 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  isAdmin: () => boolean;
+  isSupplier: () => boolean;
+  isBuyer: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -159,9 +162,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState({ user: null, token: null, isLoading: false });
   }, []);
 
+  const isAdmin = useCallback(
+    () => state.user?.role === "admin",
+    [state.user]
+  );
+
+  const isSupplier = useCallback(
+    () =>
+      state.user?.role === "supplier_admin" ||
+      state.user?.role === "supplier_user",
+    [state.user]
+  );
+
+  const isBuyer = useCallback(
+    () => state.user?.role === "buyer",
+    [state.user]
+  );
+
   const value = useMemo(
-    () => ({ ...state, login, logout }),
-    [state, login, logout]
+    () => ({ ...state, login, logout, isAdmin, isSupplier, isBuyer }),
+    [state, login, logout, isAdmin, isSupplier, isBuyer]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
