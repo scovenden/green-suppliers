@@ -19,13 +19,16 @@ public class SupplierMeLeadTests
         return new GreenSuppliersDbContext(options);
     }
 
-    private static SupplierMeService CreateService(GreenSuppliersDbContext context)
+    private static SupplierMeLeadService CreateService(GreenSuppliersDbContext context)
     {
         var esgScoring = new EsgScoringService();
         var verification = new VerificationService();
         var audit = new AuditService(context);
-        var logger = Mock.Of<ILogger<SupplierMeService>>();
-        return new SupplierMeService(context, esgScoring, verification, audit, logger);
+        var scoringRunner = new ScoringRunner(context, esgScoring, verification);
+        var meLogger = Mock.Of<ILogger<SupplierMeService>>();
+        var supplierMeService = new SupplierMeService(context, scoringRunner, audit, meLogger);
+        var leadLogger = Mock.Of<ILogger<SupplierMeLeadService>>();
+        return new SupplierMeLeadService(context, supplierMeService, audit, leadLogger);
     }
 
     private static async Task<(Guid OrgId, Guid ProfileId)> SeedSupplierAsync(GreenSuppliersDbContext context)

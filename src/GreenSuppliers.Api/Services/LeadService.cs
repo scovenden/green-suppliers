@@ -1,5 +1,6 @@
 using System.Text.Json;
 using GreenSuppliers.Api.Data;
+using GreenSuppliers.Api.Helpers;
 using GreenSuppliers.Api.Models.DTOs;
 using GreenSuppliers.Api.Models.Entities;
 using GreenSuppliers.Api.Models.Enums;
@@ -63,7 +64,7 @@ public class LeadService
         // Audit
         await _audit.LogAsync(null, "LeadCreated", "Lead", lead.Id, ipAddress: ipAddress, ct: ct);
 
-        return MapToDto(lead);
+        return LeadMapper.MapToDto(lead);
     }
 
     public async Task<LeadDto> CreateGetListedAsync(GetListedRequest request, string? ipAddress, CancellationToken ct = default)
@@ -131,7 +132,7 @@ public class LeadService
         // Audit
         await _audit.LogAsync(null, "GetListedCreated", "Lead", lead.Id, ipAddress: ipAddress, ct: ct);
 
-        return MapToDto(lead);
+        return LeadMapper.MapToDto(lead);
     }
 
     public async Task<PagedResult<LeadDto>> GetAllAsync(int page, int pageSize, string? status, CancellationToken ct = default)
@@ -153,7 +154,7 @@ public class LeadService
 
         return new PagedResult<LeadDto>
         {
-            Items = items.Select(MapToDto).ToList(),
+            Items = items.Select(LeadMapper.MapToDto).ToList(),
             Page = page,
             PageSize = pageSize,
             Total = total
@@ -182,24 +183,4 @@ public class LeadService
         return true;
     }
 
-    private static LeadDto MapToDto(Lead lead)
-    {
-        return new LeadDto
-        {
-            Id = lead.Id,
-            SupplierProfileId = lead.SupplierProfileId,
-            BuyerOrganizationId = lead.BuyerOrganizationId,
-            BuyerUserId = lead.BuyerUserId,
-            ContactName = lead.ContactName,
-            ContactEmail = lead.ContactEmail,
-            ContactPhone = lead.ContactPhone,
-            CompanyName = lead.CompanyName,
-            Message = lead.Message,
-            Status = lead.Status.ToString(),
-            LeadType = lead.LeadType,
-            IpAddress = lead.IpAddress,
-            CreatedAt = lead.CreatedAt,
-            UpdatedAt = lead.UpdatedAt
-        };
-    }
 }

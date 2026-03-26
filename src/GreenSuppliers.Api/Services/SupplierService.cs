@@ -10,19 +10,16 @@ namespace GreenSuppliers.Api.Services;
 public class SupplierService
 {
     private readonly GreenSuppliersDbContext _context;
-    private readonly EsgScoringService _esgScoring;
-    private readonly VerificationService _verification;
+    private readonly ScoringRunner _scoringRunner;
     private readonly AuditService _audit;
 
     public SupplierService(
         GreenSuppliersDbContext context,
-        EsgScoringService esgScoring,
-        VerificationService verification,
+        ScoringRunner scoringRunner,
         AuditService audit)
     {
         _context = context;
-        _esgScoring = esgScoring;
-        _verification = verification;
+        _scoringRunner = scoringRunner;
         _audit = audit;
     }
 
@@ -100,13 +97,13 @@ public class SupplierService
         await _context.SaveChangesAsync(ct);
 
         // Run ESG scoring + verification
-        await RunScoringAsync(profile, ct);
+        await _scoringRunner.RunScoringAsync(profile, ct);
 
         // Write audit log
         await _audit.LogAsync(adminUserId, "SupplierCreated", "SupplierProfile", profile.Id, ct: ct);
 
         // Return full DTO
-        return await BuildProfileDtoAsync(profile.Id, ct);
+        return await SupplierProfileMapper.BuildProfileDtoAsync(_context, profile.Id, ct);
     }
 
     public async Task<SupplierProfileDto?> UpdateAsync(Guid id, UpdateSupplierRequest request, Guid adminUserId, CancellationToken ct = default)
@@ -171,12 +168,12 @@ public class SupplierService
         await _context.SaveChangesAsync(ct);
 
         // Re-run scoring
-        await RunScoringAsync(profile, ct);
+        await _scoringRunner.RunScoringAsync(profile, ct);
 
         // Write audit log
         await _audit.LogAsync(adminUserId, "SupplierUpdated", "SupplierProfile", profile.Id, ct: ct);
 
-        return await BuildProfileDtoAsync(profile.Id, ct);
+        return await SupplierProfileMapper.BuildProfileDtoAsync(_context, profile.Id, ct);
     }
 
     public async Task<SupplierProfileDto?> GetBySlugAsync(string slug, CancellationToken ct = default)
@@ -188,7 +185,7 @@ public class SupplierService
         if (profile is null)
             return null;
 
-        return await BuildProfileDtoAsync(profile.Id, ct);
+        return await SupplierProfileMapper.BuildProfileDtoAsync(_context, profile.Id, ct);
     }
 
     public async Task<SupplierProfileDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -200,7 +197,7 @@ public class SupplierService
         if (profile is null)
             return null;
 
-        return await BuildProfileDtoAsync(id, ct);
+        return await SupplierProfileMapper.BuildProfileDtoAsync(_context, id, ct);
     }
 
     public async Task<bool> SetVerificationStatusAsync(Guid id, VerificationStatus status, string? reason, Guid adminUserId, CancellationToken ct = default)
@@ -251,102 +248,8 @@ public class SupplierService
         if (profile is null)
             return false;
 
-        await RunScoringAsync(profile, ct);
+        await _scoringRunner.RunScoringAsync(profile, ct);
         return true;
-    }
-
-    private async Task RunScoringAsync(SupplierProfile profile, CancellationToken ct = default)
-    {
-        var certs = await _context.SupplierCertifications
-            .Where(c => c.SupplierProfileId == profile.Id)
-            .ToListAsync(ct);
-
-        var esgResult = _esgScoring.CalculateScore(profile, certs);
-        profile.EsgLevel = esgResult.Level;
-        profile.EsgScore = esgResult.NumericScore;
-
-        var verificationStatus = _verification.Evaluate(profile, certs);
-        profile.VerificationStatus = verificationStatus;
-
-        profile.LastScoredAt = DateTime.UtcNow;
-        profile.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync(ct);
-    }
-
-    private async Task<SupplierProfileDto> BuildProfileDtoAsync(Guid profileId, CancellationToken ct = default)
-    {
-        var profile = await _context.SupplierProfiles
-            .AsNoTracking()
-            .Include(p => p.Organization)
-            .Include(p => p.SupplierIndustries).ThenInclude(si => si.Industry)
-            .Include(p => p.SupplierServiceTags).ThenInclude(sst => sst.ServiceTag)
-            .Include(p => p.Certifications).ThenInclude(c => c.CertificationType)
-            .FirstAsync(p => p.Id == profileId, ct);
-
-        return MapToDto(profile);
-    }
-
-    private static SupplierProfileDto MapToDto(SupplierProfile profile)
-    {
-        return new SupplierProfileDto
-        {
-            Id = profile.Id,
-            OrganizationId = profile.OrganizationId,
-            OrganizationName = profile.Organization.Name,
-            Slug = profile.Slug,
-            TradingName = profile.TradingName,
-            Description = profile.Description,
-            ShortDescription = profile.ShortDescription,
-            LogoUrl = profile.LogoUrl,
-            BannerUrl = profile.BannerUrl,
-            YearFounded = profile.YearFounded,
-            EmployeeCount = profile.EmployeeCount,
-            BbbeeLevel = profile.BbbeeLevel,
-            CountryCode = profile.CountryCode,
-            City = profile.City,
-            Province = profile.Province,
-            Website = profile.Organization.Website,
-            Phone = profile.Organization.Phone,
-            Email = profile.Organization.Email,
-            RenewableEnergyPercent = profile.RenewableEnergyPercent,
-            WasteRecyclingPercent = profile.WasteRecyclingPercent,
-            CarbonReporting = profile.CarbonReporting,
-            WaterManagement = profile.WaterManagement,
-            SustainablePackaging = profile.SustainablePackaging,
-            VerificationStatus = profile.VerificationStatus,
-            EsgLevel = profile.EsgLevel,
-            EsgScore = profile.EsgScore,
-            IsPublished = profile.IsPublished,
-            PublishedAt = profile.PublishedAt,
-            FlaggedReason = profile.FlaggedReason,
-            LastScoredAt = profile.LastScoredAt,
-            IsDeleted = profile.IsDeleted,
-            CreatedAt = profile.CreatedAt,
-            UpdatedAt = profile.UpdatedAt,
-            IsVerified = profile.VerificationStatus == VerificationStatus.Verified,
-            Industries = profile.SupplierIndustries.Select(si => new SupplierIndustryDto
-            {
-                Id = si.Industry.Id,
-                Name = si.Industry.Name,
-                Slug = si.Industry.Slug
-            }).ToList(),
-            ServiceTags = profile.SupplierServiceTags.Select(sst => new SupplierServiceTagDto
-            {
-                Id = sst.ServiceTag.Id,
-                Name = sst.ServiceTag.Name,
-                Slug = sst.ServiceTag.Slug
-            }).ToList(),
-            Certifications = profile.Certifications.Select(c => new SupplierCertificationDto
-            {
-                Id = c.Id,
-                CertificationTypeName = c.CertificationType.Name,
-                CertificateNumber = c.CertificateNumber,
-                IssuedAt = c.IssuedAt,
-                ExpiresAt = c.ExpiresAt,
-                Status = c.Status.ToString()
-            }).ToList()
-        };
     }
 
     private async Task<string> GenerateUniqueSlugAsync(string name, CancellationToken ct = default)

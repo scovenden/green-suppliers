@@ -36,8 +36,9 @@ public class SupplierMeServiceTests
         var esgScoring = new EsgScoringService();
         var verification = new VerificationService();
         var audit = new AuditService(context);
+        var scoringRunner = new ScoringRunner(context, esgScoring, verification);
         var logger = Mock.Of<ILogger<SupplierMeService>>();
-        return new SupplierMeService(context, esgScoring, verification, audit, logger);
+        return new SupplierMeService(context, scoringRunner, audit, logger);
     }
 
     /// <summary>

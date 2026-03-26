@@ -1,4 +1,5 @@
 using GreenSuppliers.Api.Data;
+using GreenSuppliers.Api.Helpers;
 using GreenSuppliers.Api.Models.DTOs;
 using GreenSuppliers.Api.Models.Entities;
 using GreenSuppliers.Api.Models.Enums;
@@ -120,7 +121,7 @@ public class BuyerService
 
         return new PagedResult<LeadDto>
         {
-            Items = items.Select(MapLeadToDto).ToList(),
+            Items = items.Select(LeadMapper.MapToDto).ToList(),
             Page = page,
             PageSize = pageSize,
             Total = total
@@ -146,24 +147,4 @@ public class BuyerService
         };
     }
 
-    private static LeadDto MapLeadToDto(Lead lead)
-    {
-        return new LeadDto
-        {
-            Id = lead.Id,
-            SupplierProfileId = lead.SupplierProfileId,
-            BuyerOrganizationId = lead.BuyerOrganizationId,
-            BuyerUserId = lead.BuyerUserId,
-            ContactName = lead.ContactName,
-            ContactEmail = lead.ContactEmail,
-            ContactPhone = lead.ContactPhone,
-            CompanyName = lead.CompanyName,
-            Message = lead.Message,
-            Status = lead.Status.ToString(),
-            LeadType = lead.LeadType,
-            IpAddress = lead.IpAddress,
-            CreatedAt = lead.CreatedAt,
-            UpdatedAt = lead.UpdatedAt
-        };
-    }
 }

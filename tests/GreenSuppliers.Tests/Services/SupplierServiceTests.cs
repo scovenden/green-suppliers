@@ -23,7 +23,8 @@ public class SupplierServiceTests
         var esgScoring = new EsgScoringService();
         var verification = new VerificationService();
         var audit = new AuditService(context);
-        return new SupplierService(context, esgScoring, verification, audit);
+        var scoringRunner = new ScoringRunner(context, esgScoring, verification);
+        return new SupplierService(context, scoringRunner, audit);
     }
 
     private static CreateSupplierRequest CreateValidRequest() => new()

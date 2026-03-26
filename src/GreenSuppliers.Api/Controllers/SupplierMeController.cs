@@ -12,6 +12,7 @@ namespace GreenSuppliers.Api.Controllers;
 public class SupplierMeController : ControllerBase
 {
     private readonly SupplierMeService _supplierMeService;
+    private readonly SupplierMeLeadService _supplierMeLeadService;
     private readonly DocumentService _documentService;
     private readonly AuditService _auditService;
 
@@ -44,10 +45,12 @@ public class SupplierMeController : ControllerBase
 
     public SupplierMeController(
         SupplierMeService supplierMeService,
+        SupplierMeLeadService supplierMeLeadService,
         DocumentService documentService,
         AuditService auditService)
     {
         _supplierMeService = supplierMeService;
+        _supplierMeLeadService = supplierMeLeadService;
         _documentService = documentService;
         _auditService = auditService;
     }
@@ -284,7 +287,7 @@ public class SupplierMeController : ControllerBase
         if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
         var orgId = User.GetOrganizationId();
-        var result = await _supplierMeService.GetLeadsAsync(orgId, page, pageSize, status, ct);
+        var result = await _supplierMeLeadService.GetLeadsAsync(orgId, page, pageSize, status, ct);
 
         return Ok(ApiResponse<List<LeadDto>>.Ok(result.Items, new PaginationMeta(result.Page, result.PageSize, result.Total, result.TotalPages)));
     }
@@ -296,7 +299,7 @@ public class SupplierMeController : ControllerBase
     public async Task<IActionResult> GetLeadDetail(Guid id, CancellationToken ct)
     {
         var orgId = User.GetOrganizationId();
-        var lead = await _supplierMeService.GetLeadDetailAsync(orgId, id, ct);
+        var lead = await _supplierMeLeadService.GetLeadDetailAsync(orgId, id, ct);
 
         if (lead is null)
             return NotFound(ApiResponse<LeadDto>.Fail("NOT_FOUND", "Lead not found."));
@@ -312,7 +315,7 @@ public class SupplierMeController : ControllerBase
     {
         var orgId = User.GetOrganizationId();
         var userId = User.GetUserId();
-        var success = await _supplierMeService.UpdateLeadStatusAsync(orgId, id, request.Status, userId, ct);
+        var success = await _supplierMeLeadService.UpdateLeadStatusAsync(orgId, id, request.Status, userId, ct);
 
         if (!success)
             return BadRequest(ApiResponse<object>.Fail("INVALID_STATUS_TRANSITION",

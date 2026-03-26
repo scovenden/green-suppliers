@@ -64,7 +64,7 @@ public class AdminSuppliersController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateSupplierRequest request, CancellationToken ct)
     {
         var adminUserId = User.GetUserId();
-        var profile = await _supplierService.CreateAsync(request, adminUserId);
+        var profile = await _supplierService.CreateAsync(request, adminUserId, ct);
 
         return StatusCode(201, ApiResponse<SupplierProfileDto>.Ok(profile));
     }
@@ -73,7 +73,7 @@ public class AdminSuppliersController : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSupplierRequest request, CancellationToken ct)
     {
         var adminUserId = User.GetUserId();
-        var profile = await _supplierService.UpdateAsync(id, request, adminUserId);
+        var profile = await _supplierService.UpdateAsync(id, request, adminUserId, ct);
 
         if (profile is null)
             return NotFound(ApiResponse<SupplierProfileDto>.Fail("NOT_FOUND", "Supplier not found."));
@@ -88,7 +88,7 @@ public class AdminSuppliersController : ControllerBase
             return BadRequest(ApiResponse<object>.Fail("INVALID_STATUS", "Invalid verification status value."));
 
         var adminUserId = User.GetUserId();
-        var success = await _supplierService.SetVerificationStatusAsync(id, status, request.Reason, adminUserId);
+        var success = await _supplierService.SetVerificationStatusAsync(id, status, request.Reason, adminUserId, ct);
 
         if (!success)
             return NotFound(ApiResponse<object>.Fail("NOT_FOUND", "Supplier not found."));
@@ -100,7 +100,7 @@ public class AdminSuppliersController : ControllerBase
     public async Task<IActionResult> Publish(Guid id, [FromBody] PublishRequest request, CancellationToken ct)
     {
         var adminUserId = User.GetUserId();
-        var success = await _supplierService.SetPublishedAsync(id, request.Published, adminUserId);
+        var success = await _supplierService.SetPublishedAsync(id, request.Published, adminUserId, ct);
 
         if (!success)
             return NotFound(ApiResponse<object>.Fail("NOT_FOUND", "Supplier not found."));
@@ -111,12 +111,12 @@ public class AdminSuppliersController : ControllerBase
     [HttpPost("{id:guid}/rescore")]
     public async Task<IActionResult> Rescore(Guid id, CancellationToken ct)
     {
-        var success = await _supplierService.RescoreAsync(id);
+        var success = await _supplierService.RescoreAsync(id, ct);
 
         if (!success)
             return NotFound(ApiResponse<object>.Fail("NOT_FOUND", "Supplier not found."));
 
-        var profile = await _supplierService.GetByIdAsync(id);
+        var profile = await _supplierService.GetByIdAsync(id, ct);
         return Ok(ApiResponse<SupplierProfileDto>.Ok(profile!));
     }
 

@@ -31,15 +31,17 @@ builder.Services.AddDbContext<GreenSuppliersDbContext>(options =>
 // Application services
 builder.Services.AddScoped<ISupplierSearchService, SqlFullTextSearchService>();
 builder.Services.AddScoped<AuditService>();
-builder.Services.AddScoped<SupplierService>();
 builder.Services.AddScoped<EsgScoringService>();
 builder.Services.AddScoped<VerificationService>();
+builder.Services.AddScoped<ScoringRunner>();
+builder.Services.AddScoped<SupplierService>();
 builder.Services.AddScoped<LeadService>();
 builder.Services.AddScoped<TaxonomyService>();
 builder.Services.AddScoped<ContentService>();
 builder.Services.AddScoped<DocumentService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<SupplierMeService>();
+builder.Services.AddScoped<SupplierMeLeadService>();
 builder.Services.AddScoped<BuyerService>();
 
 // JWT Authentication
