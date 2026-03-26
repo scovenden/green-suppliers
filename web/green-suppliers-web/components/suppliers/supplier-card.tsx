@@ -3,11 +3,17 @@ import { cn } from "@/lib/utils";
 import type { SupplierSearchResult } from "@/lib/types";
 import { getEsgBadgeColor } from "@/lib/types";
 import { EsgBadge } from "./esg-badge";
+import { SaveSupplierButton } from "./save-supplier-button";
 import { CheckCircle, ArrowRight, Shield } from "lucide-react";
 
 interface SupplierCardProps {
   supplier: SupplierSearchResult;
   className?: string;
+  /** If provided, shows a save/bookmark button for authenticated buyers */
+  buyerAuth?: {
+    token: string;
+    savedId?: string | null;
+  };
 }
 
 function getInitials(name: string): string {
@@ -34,7 +40,7 @@ function getEsgGradientBorder(level: string): string {
   }
 }
 
-export function SupplierCard({ supplier, className }: SupplierCardProps) {
+export function SupplierCard({ supplier, className, buyerAuth }: SupplierCardProps) {
   const esgColors = getEsgBadgeColor(supplier.esgLevel);
   const gradientBorder = getEsgGradientBorder(supplier.esgLevel);
 
@@ -53,6 +59,17 @@ export function SupplierCard({ supplier, className }: SupplierCardProps) {
     >
       {/* ESG-colored gradient border strip at top */}
       <div className={cn("h-1.5 bg-gradient-to-r", gradientBorder)} />
+
+      {/* Save supplier button for authenticated buyers */}
+      {buyerAuth && (
+        <div className="absolute right-3 top-5 z-10">
+          <SaveSupplierButton
+            supplierProfileId={supplier.id}
+            savedId={buyerAuth.savedId}
+            token={buyerAuth.token}
+          />
+        </div>
+      )}
 
       <div className="flex flex-col gap-4 p-5">
         {/* Top row: logo + name + badge */}

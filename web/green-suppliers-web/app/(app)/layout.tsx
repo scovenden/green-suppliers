@@ -4,10 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { apiGetAuth } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   User,
+  Inbox,
   ShieldCheck,
   Settings,
   LogOut,
@@ -17,18 +19,48 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+}
+
+const BASE_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/dashboard/leads", label: "Leads", icon: Inbox },
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/certifications", label: "Certifications", icon: ShieldCheck },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
   const { user, token, isLoading, logout, isSupplier } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [newLeadCount, setNewLeadCount] = useState(0);
+
+  // Fetch new lead count for badge
+  useEffect(() => {
+    if (!token) return;
+    async function fetchLeadCount() {
+      const res = await apiGetAuth<{ newLeads: number }>(
+        "/supplier/me/dashboard",
+        token!
+      );
+      if (res.success && res.data) {
+        setNewLeadCount(res.data.newLeads);
+      }
+    }
+    fetchLeadCount();
+  }, [token]);
+
+  const NAV_ITEMS: NavItem[] = BASE_NAV_ITEMS.map((item) =>
+    item.href === "/dashboard/leads" && newLeadCount > 0
+      ? { ...item, badge: newLeadCount }
+      : item
+  );
 
   // Close sidebar on Escape key
   const handleKeyDown = useCallback(
@@ -143,6 +175,11 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
               >
                 <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {item.label}
+                {item.badge != null && item.badge > 0 && (
+                  <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1.5 text-[10px] font-bold text-white">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}

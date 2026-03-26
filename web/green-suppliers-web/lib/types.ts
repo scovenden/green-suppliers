@@ -281,6 +281,57 @@ export interface AdminActivity {
   createdAt: string;
 }
 
+// --- Sprint 3: Buyer Dashboard & Supplier Leads ---
+
+export interface BuyerDashboardStats {
+  savedSupplierCount: number;
+  inquirySentCount: number;
+  inquiryRespondedCount: number;
+}
+
+export interface SavedSupplier {
+  id: string;
+  supplierProfileId: string;
+  slug: string;
+  tradingName: string;
+  shortDescription: string | null;
+  city: string | null;
+  countryCode: string;
+  verificationStatus: string;
+  esgLevel: string;
+  esgScore: number;
+  logoUrl: string | null;
+  industries: string[];
+  isVerified: boolean;
+  savedAt: string;
+}
+
+export interface BuyerLead {
+  id: string;
+  supplierProfileId: string;
+  supplierTradingName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  companyName: string | null;
+  message: string;
+  status: LeadStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupplierLead {
+  id: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string | null;
+  companyName: string | null;
+  message: string;
+  status: LeadStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export function getEsgBadgeColor(level: string) {
   switch (level.toLowerCase()) {
     case "platinum":
