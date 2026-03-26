@@ -44,6 +44,12 @@ public class UserConfig : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasDefaultValue(false);
 
+        builder.Property(u => u.EmailVerificationToken)
+            .HasMaxLength(128);
+
+        builder.Property(u => u.PasswordResetToken)
+            .HasMaxLength(128);
+
         builder.Property(u => u.IsDeleted)
             .IsRequired()
             .HasDefaultValue(false);

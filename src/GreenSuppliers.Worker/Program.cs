@@ -3,6 +3,7 @@ using GreenSuppliers.Api.Services;
 using GreenSuppliers.Worker.Jobs;
 using GreenSuppliers.Worker.Services;
 using Microsoft.EntityFrameworkCore;
+using Resend;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -14,8 +15,19 @@ builder.Services.AddDbContext<GreenSuppliersDbContext>(options =>
 builder.Services.AddScoped<EsgScoringService>();
 builder.Services.AddScoped<VerificationService>();
 
-// Register email sender (swap ConsoleEmailSender for a real implementation in production)
-builder.Services.AddScoped<IEmailSender, ConsoleEmailSender>();
+// Register email sender: use Resend when API key is configured, otherwise fall back to console
+var resendApiKey = builder.Configuration["Resend:ApiKey"];
+if (!string.IsNullOrWhiteSpace(resendApiKey))
+{
+    builder.Services.AddOptions<ResendClientOptions>()
+        .Configure(o => o.ApiToken = resendApiKey);
+    builder.Services.AddHttpClient<IResend, ResendClient>();
+    builder.Services.AddScoped<IEmailSender, ResendEmailSender>();
+}
+else
+{
+    builder.Services.AddScoped<IEmailSender, ConsoleEmailSender>();
+}
 
 // Register hosted services (background jobs)
 builder.Services.AddHostedService<CertExpiryScanner>();

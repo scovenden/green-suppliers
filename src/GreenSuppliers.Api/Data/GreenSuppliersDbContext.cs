@@ -21,6 +21,7 @@ public class GreenSuppliersDbContext : DbContext
     public DbSet<ContentPage> ContentPages => Set<ContentPage>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
     public DbSet<EmailQueueItem> EmailQueue => Set<EmailQueueItem>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     // Phase 2 stubs
     public DbSet<Plan> Plans => Set<Plan>();

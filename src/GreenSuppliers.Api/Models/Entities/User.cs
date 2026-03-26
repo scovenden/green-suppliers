@@ -28,6 +28,15 @@ public class User
     public bool IsActive { get; set; } = true;
     public bool EmailVerified { get; set; }
     public DateTime? LastLoginAt { get; set; }
+
+    [MaxLength(128)]
+    public string? EmailVerificationToken { get; set; }
+    public DateTime? EmailVerificationExpiry { get; set; }
+
+    [MaxLength(128)]
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetExpiry { get; set; }
+
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
     public DateTime CreatedAt { get; set; }

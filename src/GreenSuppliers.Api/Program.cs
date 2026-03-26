@@ -38,6 +38,7 @@ builder.Services.AddScoped<LeadService>();
 builder.Services.AddScoped<TaxonomyService>();
 builder.Services.AddScoped<ContentService>();
 builder.Services.AddScoped<DocumentService>();
+builder.Services.AddScoped<AccountService>();
 
 // JWT Authentication
 builder.Services.AddScoped<JwtTokenService>();
@@ -70,7 +71,9 @@ builder.Services.AddRateLimiter(options =>
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
         var path = context.Request.Path.Value ?? "";
-        if (path.Contains("/auth/login") || path.Contains("/auth/refresh"))
+        if (path.Contains("/auth/login") || path.Contains("/auth/refresh")
+            || path.Contains("/auth/register") || path.Contains("/auth/forgot-password")
+            || path.Contains("/auth/reset-password"))
         {
             return RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
