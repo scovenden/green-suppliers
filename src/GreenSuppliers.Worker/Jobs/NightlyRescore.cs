@@ -77,15 +77,21 @@ public class NightlyRescore : BackgroundService
             .Where(p => p.IsPublished && !p.IsDeleted)
             .ToListAsync(ct);
 
+        // Preload ALL certifications in a single query to avoid N+1
+        var allCerts = await db.SupplierCertifications
+            .ToListAsync(ct);
+
+        var certsBySupplier = allCerts
+            .GroupBy(c => c.SupplierProfileId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
         var totalRescored = 0;
         var totalChanged = 0;
 
         foreach (var profile in profiles)
         {
-            // Load certifications for this supplier
-            var certs = await db.SupplierCertifications
-                .Where(c => c.SupplierProfileId == profile.Id)
-                .ToListAsync(ct);
+            // Look up certifications from the preloaded dictionary
+            var certs = certsBySupplier.GetValueOrDefault(profile.Id, []);
 
             var previousLevel = profile.EsgLevel;
             var previousScore = profile.EsgScore;

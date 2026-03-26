@@ -11,14 +11,16 @@ public class LeadService
 {
     private readonly GreenSuppliersDbContext _context;
     private readonly AuditService _audit;
+    private readonly IConfiguration _configuration;
 
-    public LeadService(GreenSuppliersDbContext context, AuditService audit)
+    public LeadService(GreenSuppliersDbContext context, AuditService audit, IConfiguration configuration)
     {
         _context = context;
         _audit = audit;
+        _configuration = configuration;
     }
 
-    public async Task<LeadDto> CreateLeadAsync(LeadRequest request, string? ipAddress)
+    public async Task<LeadDto> CreateLeadAsync(LeadRequest request, string? ipAddress, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
 
@@ -39,7 +41,6 @@ public class LeadService
         };
 
         _context.Leads.Add(lead);
-        await _context.SaveChangesAsync();
 
         // Queue email notification
         _context.EmailQueue.Add(new EmailQueueItem
@@ -54,15 +55,16 @@ public class LeadService
             Status = "pending",
             CreatedAt = now
         });
-        await _context.SaveChangesAsync();
+
+        await _context.SaveChangesAsync(ct);
 
         // Audit
-        await _audit.LogAsync(null, "LeadCreated", "Lead", lead.Id, ipAddress: ipAddress);
+        await _audit.LogAsync(null, "LeadCreated", "Lead", lead.Id, ipAddress: ipAddress, ct: ct);
 
         return MapToDto(lead);
     }
 
-    public async Task<LeadDto> CreateGetListedAsync(GetListedRequest request, string? ipAddress)
+    public async Task<LeadDto> CreateGetListedAsync(GetListedRequest request, string? ipAddress, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
 
@@ -106,13 +108,13 @@ public class LeadService
         };
 
         _context.Leads.Add(lead);
-        await _context.SaveChangesAsync();
 
         // Queue email notification to admin
+        var adminEmail = _configuration["Notifications:AdminEmail"] ?? "admin@greensuppliers.co.za";
         _context.EmailQueue.Add(new EmailQueueItem
         {
             Id = Guid.NewGuid(),
-            ToEmail = "admin@greensuppliers.co.za",
+            ToEmail = adminEmail,
             ToName = "Green Suppliers Admin",
             Subject = $"New Get Listed request from {request.CompanyName}",
             BodyHtml = $"<p>New listing request from {request.ContactName} at {request.CompanyName}</p><p>{message}</p>",
@@ -121,15 +123,16 @@ public class LeadService
             Status = "pending",
             CreatedAt = now
         });
-        await _context.SaveChangesAsync();
+
+        await _context.SaveChangesAsync(ct);
 
         // Audit
-        await _audit.LogAsync(null, "GetListedCreated", "Lead", lead.Id, ipAddress: ipAddress);
+        await _audit.LogAsync(null, "GetListedCreated", "Lead", lead.Id, ipAddress: ipAddress, ct: ct);
 
         return MapToDto(lead);
     }
 
-    public async Task<PagedResult<LeadDto>> GetAllAsync(int page, int pageSize, string? status)
+    public async Task<PagedResult<LeadDto>> GetAllAsync(int page, int pageSize, string? status, CancellationToken ct = default)
     {
         var query = _context.Leads.AsNoTracking().AsQueryable();
 
@@ -138,13 +141,13 @@ public class LeadService
             query = query.Where(l => l.Status == parsedStatus);
         }
 
-        var total = await query.CountAsync();
+        var total = await query.CountAsync(ct);
 
         var items = await query
             .OrderByDescending(l => l.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return new PagedResult<LeadDto>
         {
@@ -155,12 +158,12 @@ public class LeadService
         };
     }
 
-    public async Task<bool> UpdateStatusAsync(Guid id, string status, Guid adminUserId)
+    public async Task<bool> UpdateStatusAsync(Guid id, string status, Guid adminUserId, CancellationToken ct = default)
     {
         if (!Enum.TryParse<LeadStatus>(status, ignoreCase: true, out var parsedStatus))
             return false;
 
-        var lead = await _context.Leads.FindAsync(id);
+        var lead = await _context.Leads.FindAsync(new object[] { id }, ct);
         if (lead is null)
             return false;
 
@@ -168,11 +171,11 @@ public class LeadService
         lead.Status = parsedStatus;
         lead.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         await _audit.LogAsync(adminUserId, "LeadStatusChanged", "Lead", id,
             oldValues: $"{{\"status\":\"{oldStatus}\"}}",
-            newValues: $"{{\"status\":\"{parsedStatus}\"}}");
+            newValues: $"{{\"status\":\"{parsedStatus}\"}}", ct: ct);
 
         return true;
     }

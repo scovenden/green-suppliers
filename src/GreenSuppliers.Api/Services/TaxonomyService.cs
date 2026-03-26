@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
 using GreenSuppliers.Api.Data;
+using GreenSuppliers.Api.Helpers;
 using GreenSuppliers.Api.Models.DTOs;
 using GreenSuppliers.Api.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,7 @@ public class TaxonomyService
 
     // --- Industries ---
 
-    public async Task<List<IndustryDto>> GetIndustriesAsync(bool activeOnly = true)
+    public async Task<List<IndustryDto>> GetIndustriesAsync(bool activeOnly = true, CancellationToken ct = default)
     {
         var query = _context.Industries.AsNoTracking().AsQueryable();
 
@@ -27,13 +27,13 @@ public class TaxonomyService
         var industries = await query
             .OrderBy(i => i.SortOrder)
             .ThenBy(i => i.Name)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         // Get supplier counts
         var supplierCounts = await _context.Set<SupplierIndustry>()
             .GroupBy(si => si.IndustryId)
             .Select(g => new { IndustryId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.IndustryId, x => x.Count);
+            .ToDictionaryAsync(x => x.IndustryId, x => x.Count, ct);
 
         return industries.Select(i => new IndustryDto
         {
@@ -48,16 +48,16 @@ public class TaxonomyService
         }).ToList();
     }
 
-    public async Task<IndustryDto?> GetIndustryBySlugAsync(string slug)
+    public async Task<IndustryDto?> GetIndustryBySlugAsync(string slug, CancellationToken ct = default)
     {
         var industry = await _context.Industries
             .AsNoTracking()
-            .FirstOrDefaultAsync(i => i.Slug == slug);
+            .FirstOrDefaultAsync(i => i.Slug == slug, ct);
 
         if (industry is null) return null;
 
         var supplierCount = await _context.Set<SupplierIndustry>()
-            .CountAsync(si => si.IndustryId == industry.Id);
+            .CountAsync(si => si.IndustryId == industry.Id, ct);
 
         return new IndustryDto
         {
@@ -72,9 +72,9 @@ public class TaxonomyService
         };
     }
 
-    public async Task<IndustryDto> CreateIndustryAsync(string name, string? description, Guid? parentId)
+    public async Task<IndustryDto> CreateIndustryAsync(string name, string? description, Guid? parentId, CancellationToken ct = default)
     {
-        var slug = Slugify(name);
+        var slug = SlugHelper.Slugify(name);
         var now = DateTime.UtcNow;
 
         var industry = new Industry
@@ -90,7 +90,7 @@ public class TaxonomyService
         };
 
         _context.Industries.Add(industry);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return new IndustryDto
         {
@@ -105,19 +105,19 @@ public class TaxonomyService
         };
     }
 
-    public async Task<IndustryDto?> UpdateIndustryAsync(Guid id, string name, string? description)
+    public async Task<IndustryDto?> UpdateIndustryAsync(Guid id, string name, string? description, CancellationToken ct = default)
     {
-        var industry = await _context.Industries.FindAsync(id);
+        var industry = await _context.Industries.FindAsync(new object[] { id }, ct);
         if (industry is null) return null;
 
         industry.Name = name;
-        industry.Slug = Slugify(name);
+        industry.Slug = SlugHelper.Slugify(name);
         industry.Description = description;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         var supplierCount = await _context.Set<SupplierIndustry>()
-            .CountAsync(si => si.IndustryId == id);
+            .CountAsync(si => si.IndustryId == id, ct);
 
         return new IndustryDto
         {
@@ -134,7 +134,7 @@ public class TaxonomyService
 
     // --- Certification Types ---
 
-    public async Task<List<CertTypeDto>> GetCertTypesAsync(bool activeOnly = true)
+    public async Task<List<CertTypeDto>> GetCertTypesAsync(bool activeOnly = true, CancellationToken ct = default)
     {
         var query = _context.CertificationTypes.AsNoTracking().AsQueryable();
 
@@ -143,7 +143,7 @@ public class TaxonomyService
 
         var certTypes = await query
             .OrderBy(ct => ct.Name)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return certTypes.Select(ct => new CertTypeDto
         {
@@ -155,20 +155,20 @@ public class TaxonomyService
         }).ToList();
     }
 
-    public async Task<CertTypeDto> CreateCertTypeAsync(string name, string? description)
+    public async Task<CertTypeDto> CreateCertTypeAsync(string name, string? description, CancellationToken ct = default)
     {
         var certType = new CertificationType
         {
             Id = Guid.NewGuid(),
             Name = name,
-            Slug = Slugify(name),
+            Slug = SlugHelper.Slugify(name),
             Description = description,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
         _context.CertificationTypes.Add(certType);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return new CertTypeDto
         {
@@ -180,16 +180,16 @@ public class TaxonomyService
         };
     }
 
-    public async Task<CertTypeDto?> UpdateCertTypeAsync(Guid id, string name, string? description)
+    public async Task<CertTypeDto?> UpdateCertTypeAsync(Guid id, string name, string? description, CancellationToken ct = default)
     {
-        var certType = await _context.CertificationTypes.FindAsync(id);
+        var certType = await _context.CertificationTypes.FindAsync(new object[] { id }, ct);
         if (certType is null) return null;
 
         certType.Name = name;
-        certType.Slug = Slugify(name);
+        certType.Slug = SlugHelper.Slugify(name);
         certType.Description = description;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return new CertTypeDto
         {
@@ -203,7 +203,7 @@ public class TaxonomyService
 
     // --- Service Tags ---
 
-    public async Task<List<ServiceTagDto>> GetServiceTagsAsync(bool activeOnly = true)
+    public async Task<List<ServiceTagDto>> GetServiceTagsAsync(bool activeOnly = true, CancellationToken ct = default)
     {
         var query = _context.ServiceTags.AsNoTracking().AsQueryable();
 
@@ -212,7 +212,7 @@ public class TaxonomyService
 
         var tags = await query
             .OrderBy(st => st.Name)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return tags.Select(st => new ServiceTagDto
         {
@@ -223,19 +223,19 @@ public class TaxonomyService
         }).ToList();
     }
 
-    public async Task<ServiceTagDto> CreateServiceTagAsync(string name)
+    public async Task<ServiceTagDto> CreateServiceTagAsync(string name, CancellationToken ct = default)
     {
         var tag = new ServiceTag
         {
             Id = Guid.NewGuid(),
             Name = name,
-            Slug = Slugify(name),
+            Slug = SlugHelper.Slugify(name),
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
         _context.ServiceTags.Add(tag);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return new ServiceTagDto
         {
@@ -248,7 +248,7 @@ public class TaxonomyService
 
     // --- Countries ---
 
-    public async Task<List<CountryDto>> GetCountriesAsync(bool activeOnly = true)
+    public async Task<List<CountryDto>> GetCountriesAsync(bool activeOnly = true, CancellationToken ct = default)
     {
         var query = _context.Countries.AsNoTracking().AsQueryable();
 
@@ -258,14 +258,14 @@ public class TaxonomyService
         var countries = await query
             .OrderBy(c => c.SortOrder)
             .ThenBy(c => c.Name)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         // Get supplier counts by country code
         var supplierCounts = await _context.SupplierProfiles
             .Where(sp => !sp.IsDeleted)
             .GroupBy(sp => sp.CountryCode)
             .Select(g => new { CountryCode = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.CountryCode, x => x.Count);
+            .ToDictionaryAsync(x => x.CountryCode, x => x.Count, ct);
 
         return countries.Select(c => new CountryDto
         {
@@ -278,16 +278,16 @@ public class TaxonomyService
         }).ToList();
     }
 
-    public async Task<CountryDto?> GetCountryByCodeAsync(string code)
+    public async Task<CountryDto?> GetCountryByCodeAsync(string code, CancellationToken ct = default)
     {
         var country = await _context.Countries
             .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Code == code);
+            .FirstOrDefaultAsync(c => c.Code == code, ct);
 
         if (country is null) return null;
 
         var supplierCount = await _context.SupplierProfiles
-            .CountAsync(sp => sp.CountryCode == code && !sp.IsDeleted);
+            .CountAsync(sp => sp.CountryCode == code && !sp.IsDeleted, ct);
 
         return new CountryDto
         {
@@ -298,15 +298,5 @@ public class TaxonomyService
             IsActive = country.IsActive,
             SupplierCount = supplierCount
         };
-    }
-
-    private static string Slugify(string input)
-    {
-        var slug = input.ToLowerInvariant().Trim();
-        slug = Regex.Replace(slug, @"[\s_]+", "-");
-        slug = Regex.Replace(slug, @"[^a-z0-9\-]", "");
-        slug = Regex.Replace(slug, @"-{2,}", "-");
-        slug = slug.Trim('-');
-        return slug;
     }
 }

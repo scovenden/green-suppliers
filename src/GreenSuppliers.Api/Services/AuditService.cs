@@ -13,7 +13,7 @@ public class AuditService
     }
 
     public async Task LogAsync(Guid? userId, string action, string entityType, Guid entityId,
-        string? oldValues = null, string? newValues = null, string? ipAddress = null)
+        string? oldValues = null, string? newValues = null, string? ipAddress = null, CancellationToken ct = default)
     {
         _context.AuditEvents.Add(new AuditEvent
         {
@@ -27,6 +27,6 @@ public class AuditService
             IpAddress = ipAddress,
             CreatedAt = DateTime.UtcNow
         });
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
     }
 }

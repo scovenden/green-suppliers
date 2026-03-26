@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
 using GreenSuppliers.Api.Data;
+using GreenSuppliers.Api.Helpers;
 using GreenSuppliers.Api.Models.DTOs;
 using GreenSuppliers.Api.Models.Entities;
 using GreenSuppliers.Api.Models.Enums;
@@ -26,7 +26,7 @@ public class SupplierService
         _audit = audit;
     }
 
-    public async Task<SupplierProfileDto> CreateAsync(CreateSupplierRequest request, Guid adminUserId)
+    public async Task<SupplierProfileDto> CreateAsync(CreateSupplierRequest request, Guid adminUserId, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
 
@@ -51,7 +51,7 @@ public class SupplierService
         var slugSource = !string.IsNullOrWhiteSpace(request.TradingName)
             ? request.TradingName
             : request.CompanyName;
-        var slug = await GenerateUniqueSlugAsync(slugSource);
+        var slug = await GenerateUniqueSlugAsync(slugSource, ct);
 
         // Create SupplierProfile
         var profile = new SupplierProfile
@@ -97,25 +97,25 @@ public class SupplierService
             });
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         // Run ESG scoring + verification
-        await RunScoringAsync(profile);
+        await RunScoringAsync(profile, ct);
 
         // Write audit log
-        await _audit.LogAsync(adminUserId, "SupplierCreated", "SupplierProfile", profile.Id);
+        await _audit.LogAsync(adminUserId, "SupplierCreated", "SupplierProfile", profile.Id, ct: ct);
 
         // Return full DTO
-        return await BuildProfileDtoAsync(profile.Id);
+        return await BuildProfileDtoAsync(profile.Id, ct);
     }
 
-    public async Task<SupplierProfileDto?> UpdateAsync(Guid id, UpdateSupplierRequest request, Guid adminUserId)
+    public async Task<SupplierProfileDto?> UpdateAsync(Guid id, UpdateSupplierRequest request, Guid adminUserId, CancellationToken ct = default)
     {
         var profile = await _context.SupplierProfiles
             .Include(p => p.Organization)
             .Include(p => p.SupplierIndustries)
             .Include(p => p.SupplierServiceTags)
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
 
         if (profile is null)
             return null;
@@ -168,45 +168,45 @@ public class SupplierService
             });
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         // Re-run scoring
-        await RunScoringAsync(profile);
+        await RunScoringAsync(profile, ct);
 
         // Write audit log
-        await _audit.LogAsync(adminUserId, "SupplierUpdated", "SupplierProfile", profile.Id);
+        await _audit.LogAsync(adminUserId, "SupplierUpdated", "SupplierProfile", profile.Id, ct: ct);
 
-        return await BuildProfileDtoAsync(profile.Id);
+        return await BuildProfileDtoAsync(profile.Id, ct);
     }
 
-    public async Task<SupplierProfileDto?> GetBySlugAsync(string slug)
+    public async Task<SupplierProfileDto?> GetBySlugAsync(string slug, CancellationToken ct = default)
     {
         var profile = await _context.SupplierProfiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsPublished && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsPublished && !p.IsDeleted, ct);
 
         if (profile is null)
             return null;
 
-        return await BuildProfileDtoAsync(profile.Id);
+        return await BuildProfileDtoAsync(profile.Id, ct);
     }
 
-    public async Task<SupplierProfileDto?> GetByIdAsync(Guid id)
+    public async Task<SupplierProfileDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         var profile = await _context.SupplierProfiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
 
         if (profile is null)
             return null;
 
-        return await BuildProfileDtoAsync(id);
+        return await BuildProfileDtoAsync(id, ct);
     }
 
-    public async Task<bool> SetVerificationStatusAsync(Guid id, VerificationStatus status, string? reason, Guid adminUserId)
+    public async Task<bool> SetVerificationStatusAsync(Guid id, VerificationStatus status, string? reason, Guid adminUserId, CancellationToken ct = default)
     {
         var profile = await _context.SupplierProfiles
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
 
         if (profile is null)
             return false;
@@ -215,18 +215,18 @@ public class SupplierService
         profile.FlaggedReason = status == VerificationStatus.Flagged ? reason : null;
         profile.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         await _audit.LogAsync(adminUserId, "VerificationStatusChanged", "SupplierProfile", id,
-            newValues: $"{{\"status\":\"{status}\",\"reason\":\"{reason}\"}}");
+            newValues: $"{{\"status\":\"{status}\",\"reason\":\"{reason}\"}}", ct: ct);
 
         return true;
     }
 
-    public async Task<bool> SetPublishedAsync(Guid id, bool published, Guid adminUserId)
+    public async Task<bool> SetPublishedAsync(Guid id, bool published, Guid adminUserId, CancellationToken ct = default)
     {
         var profile = await _context.SupplierProfiles
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
 
         if (profile is null)
             return false;
@@ -235,31 +235,31 @@ public class SupplierService
         profile.PublishedAt = published ? DateTime.UtcNow : null;
         profile.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         await _audit.LogAsync(adminUserId, published ? "SupplierPublished" : "SupplierUnpublished",
-            "SupplierProfile", id);
+            "SupplierProfile", id, ct: ct);
 
         return true;
     }
 
-    public async Task<bool> RescoreAsync(Guid id)
+    public async Task<bool> RescoreAsync(Guid id, CancellationToken ct = default)
     {
         var profile = await _context.SupplierProfiles
-            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
+            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
 
         if (profile is null)
             return false;
 
-        await RunScoringAsync(profile);
+        await RunScoringAsync(profile, ct);
         return true;
     }
 
-    private async Task RunScoringAsync(SupplierProfile profile)
+    private async Task RunScoringAsync(SupplierProfile profile, CancellationToken ct = default)
     {
         var certs = await _context.SupplierCertifications
             .Where(c => c.SupplierProfileId == profile.Id)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         var esgResult = _esgScoring.CalculateScore(profile, certs);
         profile.EsgLevel = esgResult.Level;
@@ -271,10 +271,10 @@ public class SupplierService
         profile.LastScoredAt = DateTime.UtcNow;
         profile.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
     }
 
-    private async Task<SupplierProfileDto> BuildProfileDtoAsync(Guid profileId)
+    private async Task<SupplierProfileDto> BuildProfileDtoAsync(Guid profileId, CancellationToken ct = default)
     {
         var profile = await _context.SupplierProfiles
             .AsNoTracking()
@@ -282,7 +282,7 @@ public class SupplierService
             .Include(p => p.SupplierIndustries).ThenInclude(si => si.Industry)
             .Include(p => p.SupplierServiceTags).ThenInclude(sst => sst.ServiceTag)
             .Include(p => p.Certifications).ThenInclude(c => c.CertificationType)
-            .FirstAsync(p => p.Id == profileId);
+            .FirstAsync(p => p.Id == profileId, ct);
 
         return MapToDto(profile);
     }
@@ -349,32 +349,18 @@ public class SupplierService
         };
     }
 
-    private async Task<string> GenerateUniqueSlugAsync(string name)
+    private async Task<string> GenerateUniqueSlugAsync(string name, CancellationToken ct = default)
     {
-        var baseSlug = Slugify(name);
+        var baseSlug = SlugHelper.Slugify(name);
         var slug = baseSlug;
         var suffix = 2;
 
-        while (await _context.SupplierProfiles.AnyAsync(p => p.Slug == slug))
+        while (await _context.SupplierProfiles.AnyAsync(p => p.Slug == slug, ct))
         {
             slug = $"{baseSlug}-{suffix}";
             suffix++;
         }
 
-        return slug;
-    }
-
-    private static string Slugify(string input)
-    {
-        var slug = input.ToLowerInvariant().Trim();
-        // Replace spaces and underscores with hyphens
-        slug = Regex.Replace(slug, @"[\s_]+", "-");
-        // Remove special characters (keep letters, digits, hyphens)
-        slug = Regex.Replace(slug, @"[^a-z0-9\-]", "");
-        // Collapse multiple hyphens
-        slug = Regex.Replace(slug, @"-{2,}", "-");
-        // Trim leading/trailing hyphens
-        slug = slug.Trim('-');
         return slug;
     }
 }

@@ -1,3 +1,4 @@
+using GreenSuppliers.Api.Extensions;
 using GreenSuppliers.Api.Models.DTOs;
 using GreenSuppliers.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +38,7 @@ public class AdminDocumentsController : ControllerBase
         // In production, upload to Azure Blob Storage. For now, generate a placeholder URL.
         var blobUrl = $"https://greensuppliers.blob.core.windows.net/documents/{Guid.NewGuid()}/{file.FileName}";
 
-        var adminUserId = GetAdminUserId();
+        var adminUserId = User.GetUserId();
 
         var document = await _documentService.CreateAsync(
             supplierProfileId,

@@ -14,7 +14,7 @@ public class DocumentService
     }
 
     public async Task<Document> CreateAsync(Guid supplierProfileId, string fileName, string blobUrl,
-        string contentType, long fileSizeBytes, string documentType, Guid? uploadedByUserId)
+        string contentType, long fileSizeBytes, string documentType, Guid? uploadedByUserId, CancellationToken ct = default)
     {
         var document = new Document
         {
@@ -30,17 +30,17 @@ public class DocumentService
         };
 
         _context.Documents.Add(document);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return document;
     }
 
-    public async Task<List<Document>> GetBySupplierAsync(Guid supplierProfileId)
+    public async Task<List<Document>> GetBySupplierAsync(Guid supplierProfileId, CancellationToken ct = default)
     {
         return await _context.Documents
             .AsNoTracking()
             .Where(d => d.SupplierProfileId == supplierProfileId)
             .OrderByDescending(d => d.CreatedAt)
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 }

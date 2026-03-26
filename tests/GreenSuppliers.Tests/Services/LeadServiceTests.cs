@@ -5,6 +5,7 @@ using GreenSuppliers.Api.Models.Entities;
 using GreenSuppliers.Api.Models.Enums;
 using GreenSuppliers.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace GreenSuppliers.Tests.Services;
 
@@ -21,7 +22,13 @@ public class LeadServiceTests
     private static LeadService CreateService(GreenSuppliersDbContext context)
     {
         var audit = new AuditService(context);
-        return new LeadService(context, audit);
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Notifications:AdminEmail"] = "admin@test.com"
+            })
+            .Build();
+        return new LeadService(context, audit, config);
     }
 
     private static async Task<SupplierProfile> SeedSupplierProfileAsync(GreenSuppliersDbContext context)

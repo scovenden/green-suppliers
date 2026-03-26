@@ -14,26 +14,26 @@ public class ContentService
         _context = context;
     }
 
-    public async Task<ContentPageDto?> GetBySlugAsync(string slug)
+    public async Task<ContentPageDto?> GetBySlugAsync(string slug, CancellationToken ct = default)
     {
         var page = await _context.ContentPages
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsPublished);
+            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsPublished, ct);
 
         return page is null ? null : MapToDto(page);
     }
 
-    public async Task<PagedResult<ContentPageDto>> GetAllAsync(int page, int pageSize)
+    public async Task<PagedResult<ContentPageDto>> GetAllAsync(int page, int pageSize, CancellationToken ct = default)
     {
         var query = _context.ContentPages.AsNoTracking();
 
-        var total = await query.CountAsync();
+        var total = await query.CountAsync(ct);
 
         var items = await query
             .OrderByDescending(p => p.UpdatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return new PagedResult<ContentPageDto>
         {
@@ -45,7 +45,7 @@ public class ContentService
     }
 
     public async Task<ContentPageDto> CreateAsync(string title, string slug, string body, string pageType,
-        string? metaTitle, string? metaDesc)
+        string? metaTitle, string? metaDesc, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
 
@@ -64,15 +64,15 @@ public class ContentService
         };
 
         _context.ContentPages.Add(contentPage);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return MapToDto(contentPage);
     }
 
     public async Task<ContentPageDto?> UpdateAsync(Guid id, string title, string? slug, string body,
-        string? metaTitle, string? metaDesc, bool isPublished)
+        string? metaTitle, string? metaDesc, bool isPublished, CancellationToken ct = default)
     {
-        var contentPage = await _context.ContentPages.FindAsync(id);
+        var contentPage = await _context.ContentPages.FindAsync(new object[] { id }, ct);
         if (contentPage is null) return null;
 
         var now = DateTime.UtcNow;
@@ -95,7 +95,7 @@ public class ContentService
             contentPage.IsPublished = false;
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return MapToDto(contentPage);
     }

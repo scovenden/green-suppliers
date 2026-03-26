@@ -1,4 +1,5 @@
 using GreenSuppliers.Api.Data;
+using GreenSuppliers.Api.Extensions;
 using GreenSuppliers.Api.Models.DTOs;
 using GreenSuppliers.Api.Models.Enums;
 using GreenSuppliers.Api.Services;
@@ -62,7 +63,7 @@ public class AdminSuppliersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateSupplierRequest request, CancellationToken ct)
     {
-        var adminUserId = GetAdminUserId();
+        var adminUserId = User.GetUserId();
         var profile = await _supplierService.CreateAsync(request, adminUserId);
 
         return StatusCode(201, ApiResponse<SupplierProfileDto>.Ok(profile));
@@ -71,7 +72,7 @@ public class AdminSuppliersController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateSupplierRequest request, CancellationToken ct)
     {
-        var adminUserId = GetAdminUserId();
+        var adminUserId = User.GetUserId();
         var profile = await _supplierService.UpdateAsync(id, request, adminUserId);
 
         if (profile is null)
@@ -86,7 +87,7 @@ public class AdminSuppliersController : ControllerBase
         if (!Enum.TryParse<VerificationStatus>(request.Status, ignoreCase: true, out var status))
             return BadRequest(ApiResponse<object>.Fail("INVALID_STATUS", "Invalid verification status value."));
 
-        var adminUserId = GetAdminUserId();
+        var adminUserId = User.GetUserId();
         var success = await _supplierService.SetVerificationStatusAsync(id, status, request.Reason, adminUserId);
 
         if (!success)
@@ -98,7 +99,7 @@ public class AdminSuppliersController : ControllerBase
     [HttpPatch("{id:guid}/publish")]
     public async Task<IActionResult> Publish(Guid id, [FromBody] PublishRequest request, CancellationToken ct)
     {
-        var adminUserId = GetAdminUserId();
+        var adminUserId = User.GetUserId();
         var success = await _supplierService.SetPublishedAsync(id, request.Published, adminUserId);
 
         if (!success)
@@ -119,11 +120,6 @@ public class AdminSuppliersController : ControllerBase
         return Ok(ApiResponse<SupplierProfileDto>.Ok(profile!));
     }
 
-    private Guid GetAdminUserId()
-    {
-        var sub = User.FindFirst("sub")?.Value;
-        return Guid.TryParse(sub, out var userId) ? userId : Guid.Empty;
-    }
 }
 
 public record ChangeStatusRequest(string Status, string? Reason);

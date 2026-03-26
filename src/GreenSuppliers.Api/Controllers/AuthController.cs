@@ -1,7 +1,9 @@
+using System.Threading.RateLimiting;
 using GreenSuppliers.Api.Auth;
 using GreenSuppliers.Api.Data;
 using GreenSuppliers.Api.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace GreenSuppliers.Api.Controllers;
@@ -25,6 +27,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    // Rate limiting applied via middleware in Program.cs
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -66,6 +69,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
+    // Rate limiting applied via middleware in Program.cs
     public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.RefreshToken))
