@@ -225,6 +225,45 @@ export interface CertificationType {
   isActive: boolean;
 }
 
+export interface SupplierDashboardStats {
+  totalLeads: number;
+  newLeads: number;
+  esgLevel: string;
+  esgScore: number;
+  verificationStatus: string;
+  profileCompleteness: number;
+  activeCertifications: number;
+  expiringCertifications: number;
+  isPublished: boolean;
+}
+
+export interface UpdateProfileRequest {
+  tradingName?: string;
+  description?: string;
+  shortDescription?: string;
+  yearFounded?: number | null;
+  employeeCount?: string;
+  bbbeeLevel?: string;
+  city?: string;
+  province?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  renewableEnergyPercent?: number | null;
+  wasteRecyclingPercent?: number | null;
+  carbonReporting?: boolean;
+  waterManagement?: boolean;
+  sustainablePackaging?: boolean;
+  industryIds?: string[];
+}
+
+export interface SubmitCertificationRequest {
+  certificationTypeId: string;
+  certificateNumber?: string;
+  issuedAt?: string;
+  expiresAt?: string;
+}
+
 export interface AdminDashboardStats {
   totalSuppliers: number;
   verifiedSuppliers: number;

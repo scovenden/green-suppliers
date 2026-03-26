@@ -89,6 +89,21 @@ export async function apiDelete<T>(
   return res.json();
 }
 
+export async function apiPostMultipart<T>(
+  path: string,
+  formData: FormData,
+  token: string
+): Promise<ApiResponse<T>> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+  return res.json();
+}
+
 export async function apiGetAuth<T>(
   path: string,
   token: string
