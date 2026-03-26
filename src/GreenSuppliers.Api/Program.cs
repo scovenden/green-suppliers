@@ -40,6 +40,7 @@ builder.Services.AddScoped<ContentService>();
 builder.Services.AddScoped<DocumentService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<SupplierMeService>();
+builder.Services.AddScoped<BuyerService>();
 
 // JWT Authentication
 builder.Services.AddScoped<JwtTokenService>();
@@ -81,6 +82,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Admin", policy => policy.RequireClaim("role", "Admin"));
     options.AddPolicy("Supplier", policy => policy.RequireClaim("role", "SupplierAdmin", "SupplierUser"));
+    options.AddPolicy("Buyer", policy => policy.RequireClaim("role", "Buyer"));
 });
 
 // Rate Limiting (global, applied to auth endpoints via path matching)

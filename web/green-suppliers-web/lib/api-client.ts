@@ -7,20 +7,28 @@ export async function apiGet<T>(
   path: string,
   options?: { revalidate?: number }
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    next: { revalidate: options?.revalidate ?? 60 },
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    return (
-      body ?? {
-        success: false,
-        data: null,
-        error: { code: "FETCH_ERROR", message: res.statusText },
-      }
-    );
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      next: { revalidate: options?.revalidate ?? 60 },
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return (
+        body ?? {
+          success: false,
+          data: null,
+          error: { code: "FETCH_ERROR", message: res.statusText },
+        }
+      );
+    }
+    return res.json();
+  } catch {
+    return {
+      success: false,
+      data: null,
+      error: { code: "NETWORK_ERROR", message: "Network error. Please check your connection and try again." },
+    };
   }
-  return res.json();
 }
 
 export async function apiPost<T>(
@@ -28,17 +36,35 @@ export async function apiPost<T>(
   body: unknown,
   token?: string
 ): Promise<ApiResponse<T>> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
-  return res.json();
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return (
+        body ?? {
+          success: false,
+          data: null,
+          error: { code: "FETCH_ERROR", message: res.statusText },
+        }
+      );
+    }
+    return res.json();
+  } catch {
+    return {
+      success: false,
+      data: null,
+      error: { code: "NETWORK_ERROR", message: "Network error. Please check your connection and try again." },
+    };
+  }
 }
 
 export async function apiPut<T>(
@@ -46,15 +72,33 @@ export async function apiPut<T>(
   body: unknown,
   token: string
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return (
+        body ?? {
+          success: false,
+          data: null,
+          error: { code: "FETCH_ERROR", message: res.statusText },
+        }
+      );
+    }
+    return res.json();
+  } catch {
+    return {
+      success: false,
+      data: null,
+      error: { code: "NETWORK_ERROR", message: "Network error. Please check your connection and try again." },
+    };
+  }
 }
 
 export async function apiPatch<T>(
@@ -62,31 +106,67 @@ export async function apiPatch<T>(
   body: unknown,
   token: string
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(body),
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return (
+        body ?? {
+          success: false,
+          data: null,
+          error: { code: "FETCH_ERROR", message: res.statusText },
+        }
+      );
+    }
+    return res.json();
+  } catch {
+    return {
+      success: false,
+      data: null,
+      error: { code: "NETWORK_ERROR", message: "Network error. Please check your connection and try again." },
+    };
+  }
 }
 
 export async function apiDelete<T>(
   path: string,
   token: string
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  if (res.status === 204) {
-    return { success: true, data: null, error: null };
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.status === 204) {
+      return { success: true, data: null, error: null };
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return (
+        body ?? {
+          success: false,
+          data: null,
+          error: { code: "FETCH_ERROR", message: res.statusText },
+        }
+      );
+    }
+    return res.json();
+  } catch {
+    return {
+      success: false,
+      data: null,
+      error: { code: "NETWORK_ERROR", message: "Network error. Please check your connection and try again." },
+    };
   }
-  return res.json();
 }
 
 export async function apiPostMultipart<T>(
@@ -94,35 +174,61 @@ export async function apiPostMultipart<T>(
   formData: FormData,
   token: string
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return (
+        body ?? {
+          success: false,
+          data: null,
+          error: { code: "FETCH_ERROR", message: res.statusText },
+        }
+      );
+    }
+    return res.json();
+  } catch {
+    return {
+      success: false,
+      data: null,
+      error: { code: "NETWORK_ERROR", message: "Network error. Please check your connection and try again." },
+    };
+  }
 }
 
 export async function apiGetAuth<T>(
   path: string,
   token: string
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    return (
-      body ?? {
-        success: false,
-        data: null,
-        error: { code: "FETCH_ERROR", message: res.statusText },
-      }
-    );
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      return (
+        body ?? {
+          success: false,
+          data: null,
+          error: { code: "FETCH_ERROR", message: res.statusText },
+        }
+      );
+    }
+    return res.json();
+  } catch {
+    return {
+      success: false,
+      data: null,
+      error: { code: "NETWORK_ERROR", message: "Network error. Please check your connection and try again." },
+    };
   }
-  return res.json();
 }

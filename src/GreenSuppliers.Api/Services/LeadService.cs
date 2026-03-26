@@ -20,7 +20,7 @@ public class LeadService
         _configuration = configuration;
     }
 
-    public async Task<LeadDto> CreateLeadAsync(LeadRequest request, string? ipAddress, CancellationToken ct = default)
+    public async Task<LeadDto> CreateLeadAsync(LeadRequest request, string? ipAddress, Guid? buyerUserId = null, Guid? buyerOrgId = null, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
 
@@ -28,6 +28,8 @@ public class LeadService
         {
             Id = Guid.NewGuid(),
             SupplierProfileId = request.SupplierProfileId,
+            BuyerUserId = buyerUserId,
+            BuyerOrganizationId = buyerOrgId,
             ContactName = request.ContactName,
             ContactEmail = request.ContactEmail,
             ContactPhone = request.ContactPhone,

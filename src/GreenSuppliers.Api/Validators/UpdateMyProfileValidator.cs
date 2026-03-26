@@ -50,5 +50,23 @@ public class UpdateMyProfileValidator : AbstractValidator<UpdateMyProfileRequest
         RuleFor(x => x.WasteRecyclingPercent)
             .InclusiveBetween(0, 100).WithMessage("Waste recycling percent must be between 0 and 100.")
             .When(x => x.WasteRecyclingPercent.HasValue);
+
+        // Prevent excessively large lists — guard against payload bombs
+        RuleFor(x => x.IndustryIds)
+            .Must(ids => ids.Count <= 20).WithMessage("A supplier may be linked to at most 20 industries.");
+
+        RuleFor(x => x.ServiceTagIds)
+            .Must(ids => ids.Count <= 50).WithMessage("A supplier may have at most 50 service tags.");
+
+        // Prevent duplicate IDs in lists
+        RuleFor(x => x.IndustryIds)
+            .Must(ids => ids.Distinct().Count() == ids.Count)
+            .WithMessage("Duplicate industry IDs are not allowed.")
+            .When(x => x.IndustryIds.Count > 0);
+
+        RuleFor(x => x.ServiceTagIds)
+            .Must(ids => ids.Distinct().Count() == ids.Count)
+            .WithMessage("Duplicate service tag IDs are not allowed.")
+            .When(x => x.ServiceTagIds.Count > 0);
     }
 }

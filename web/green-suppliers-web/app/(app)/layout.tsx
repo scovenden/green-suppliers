@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
@@ -30,6 +30,26 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Close sidebar on Escape key
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape" && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    },
+    [sidebarOpen]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
   useEffect(() => {
     if (!isLoading && !token) {
       router.replace("/admin/login");
@@ -45,7 +65,11 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
+        <div
+          role="status"
+          aria-label="Loading dashboard"
+          className="flex flex-col items-center gap-3"
+        >
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-green border-t-transparent" />
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
@@ -68,12 +92,14 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          aria-hidden="true"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
+        aria-label="Supplier dashboard navigation"
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-brand-dark transition-transform duration-200 lg:static lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -81,22 +107,23 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
       >
         {/* Logo */}
         <div className="flex h-14 items-center gap-2 border-b border-white/10 px-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-green">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-green" aria-hidden="true">
             <Leaf className="h-4 w-4 text-white" />
           </div>
           <span className="text-sm font-semibold text-white">
             Supplier Portal
           </span>
           <button
-            className="ml-auto text-white/60 hover:text-white lg:hidden"
+            className="ml-auto rounded-md p-1 text-white/60 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-white/50 lg:hidden"
             onClick={() => setSidebarOpen(false)}
+            aria-label="Close navigation menu"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav aria-label="Dashboard" className="flex-1 space-y-1 px-3 py-4">
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === "/dashboard"
@@ -106,15 +133,15 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setSidebarOpen(false)}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-white/50",
                   isActive
                     ? "bg-brand-green text-white"
                     : "text-white/60 hover:bg-white/10 hover:text-white"
                 )}
               >
-                <item.icon className="h-4 w-4 shrink-0" />
+                <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {item.label}
               </Link>
             );
@@ -131,9 +158,9 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
           </div>
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/50"
           >
-            <LogOut className="h-4 w-4 shrink-0" />
+            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
             Sign out
           </button>
         </div>
@@ -144,8 +171,11 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
         {/* Top bar */}
         <header className="flex h-14 items-center gap-4 border-b bg-white px-4 lg:px-6">
           <button
-            className="text-muted-foreground hover:text-foreground lg:hidden"
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
             onClick={() => setSidebarOpen(true)}
+            aria-label="Open navigation menu"
+            aria-expanded={sidebarOpen}
+            aria-controls="sidebar-nav"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -160,7 +190,7 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="mr-1 h-3 w-3" />
+              <LogOut className="mr-1 h-3 w-3" aria-hidden="true" />
               Logout
             </Button>
           </div>

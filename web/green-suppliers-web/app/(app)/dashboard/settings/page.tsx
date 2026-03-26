@@ -113,7 +113,7 @@ export default function SettingsPage() {
           <InfoRow
             icon={Building2}
             label="Organization"
-            value={user?.displayName ?? "---"}
+            value={user?.organizationName ?? user?.displayName ?? "---"}
           />
         </div>
       </div>
@@ -134,10 +134,13 @@ export default function SettingsPage() {
               type="password"
               {...form.register("currentPassword")}
               autoComplete="current-password"
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.currentPassword}
+              aria-describedby={form.formState.errors.currentPassword ? "currentPassword-error" : undefined}
               className="mt-1"
             />
             {form.formState.errors.currentPassword && (
-              <p className="mt-1 text-xs text-destructive">
+              <p id="currentPassword-error" role="alert" className="mt-1 text-xs text-destructive">
                 {form.formState.errors.currentPassword.message}
               </p>
             )}
@@ -150,10 +153,20 @@ export default function SettingsPage() {
               type="password"
               {...form.register("newPassword")}
               autoComplete="new-password"
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.newPassword}
+              aria-describedby={
+                form.formState.errors.newPassword
+                  ? "newPassword-error"
+                  : "newPassword-hint"
+              }
               className="mt-1"
             />
+            <p id="newPassword-hint" className="mt-1 text-xs text-muted-foreground">
+              At least 8 characters with uppercase, lowercase, and a number.
+            </p>
             {form.formState.errors.newPassword && (
-              <p className="mt-1 text-xs text-destructive">
+              <p id="newPassword-error" role="alert" className="mt-1 text-xs text-destructive">
                 {form.formState.errors.newPassword.message}
               </p>
             )}
@@ -166,10 +179,13 @@ export default function SettingsPage() {
               type="password"
               {...form.register("confirmPassword")}
               autoComplete="new-password"
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.confirmPassword}
+              aria-describedby={form.formState.errors.confirmPassword ? "confirmPassword-error" : undefined}
               className="mt-1"
             />
             {form.formState.errors.confirmPassword && (
-              <p className="mt-1 text-xs text-destructive">
+              <p id="confirmPassword-error" role="alert" className="mt-1 text-xs text-destructive">
                 {form.formState.errors.confirmPassword.message}
               </p>
             )}
@@ -187,8 +203,8 @@ export default function SettingsPage() {
       </div>
 
       {/* Danger Zone */}
-      <div className="rounded-2xl border border-red-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-red-600">
+      <section aria-labelledby="danger-zone-heading" className="rounded-2xl border border-red-200 bg-white p-6 shadow-sm">
+        <h2 id="danger-zone-heading" className="mb-2 text-sm font-semibold uppercase tracking-wide text-red-600">
           Danger Zone
         </h2>
         <p className="mb-4 text-sm text-muted-foreground">
@@ -204,10 +220,10 @@ export default function SettingsPage() {
             )
           }
         >
-          <AlertTriangle className="mr-2 h-4 w-4" />
+          <AlertTriangle className="mr-2 h-4 w-4" aria-hidden="true" />
           Delete Account
         </Button>
-      </div>
+      </section>
     </div>
   );
 }

@@ -146,6 +146,7 @@ export interface AdminUser {
   email: string;
   displayName: string;
   role: string;
+  organizationName?: string;
 }
 
 export interface AuthTokens {

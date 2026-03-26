@@ -5,6 +5,8 @@ using GreenSuppliers.Api.Models.Entities;
 using GreenSuppliers.Api.Models.Enums;
 using GreenSuppliers.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace GreenSuppliers.Tests.Services;
 
@@ -23,7 +25,8 @@ public class SupplierMeTests
         var esgScoring = new EsgScoringService();
         var verification = new VerificationService();
         var audit = new AuditService(context);
-        return new SupplierMeService(context, esgScoring, verification, audit);
+        var logger = Mock.Of<ILogger<SupplierMeService>>();
+        return new SupplierMeService(context, esgScoring, verification, audit, logger);
     }
 
     private static async Task<(Guid OrgId, Guid ProfileId)> SeedSupplierAsync(
@@ -282,10 +285,10 @@ public class SupplierMeTests
         });
 
         // Act
-        var result = await service.RequestPublicationAsync(orgId, CancellationToken.None);
+        var (success, _) = await service.RequestPublicationAsync(orgId, Guid.NewGuid(), CancellationToken.None);
 
         // Assert
-        result.Should().BeTrue();
+        success.Should().BeTrue();
         var profile = await context.SupplierProfiles
             .FirstAsync(p => p.OrganizationId == orgId);
         profile.IsPublished.Should().BeTrue();
@@ -323,10 +326,10 @@ public class SupplierMeTests
         });
 
         // Act
-        var result = await service.RequestPublicationAsync(orgId, CancellationToken.None);
+        var (success, _) = await service.RequestPublicationAsync(orgId, Guid.NewGuid(), CancellationToken.None);
 
         // Assert
-        result.Should().BeFalse();
+        success.Should().BeFalse();
     }
 
     [Fact]

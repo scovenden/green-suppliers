@@ -59,7 +59,7 @@ const BBBEE_LEVELS = [
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-6">
+    <div role="status" aria-label="Loading profile editor" className="space-y-6">
       <Skeleton className="h-8 w-64" />
       <Skeleton className="h-10 w-full max-w-md" />
       <div className="space-y-4">
@@ -67,6 +67,7 @@ function ProfileSkeleton() {
           <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
+      <span className="sr-only">Loading profile data</span>
     </div>
   );
 }
@@ -91,24 +92,33 @@ function SliderInput({
   label,
   value,
   onChange,
+  id,
 }: {
   label: string;
   value: number;
   onChange: (val: number) => void;
+  id?: string;
 }) {
+  const sliderId = id ?? label.toLowerCase().replace(/\s+/g, "-");
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-sm">{label}</Label>
-        <span className="text-sm font-semibold text-brand-green">{value}%</span>
+        <Label htmlFor={sliderId} className="text-sm">{label}</Label>
+        <span className="text-sm font-semibold text-brand-green" aria-hidden="true">{value}%</span>
       </div>
       <div className="relative">
         <input
+          id={sliderId}
           type="range"
           min={0}
           max={100}
           step={5}
           value={value}
+          aria-label={`${label}: ${value}%`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={value}
+          aria-valuetext={`${value} percent`}
           onChange={(e) => onChange(Number(e.target.value))}
           className="h-2 w-full cursor-pointer appearance-none rounded-full bg-gradient-to-r from-gray-200 via-green-300 to-green-600 accent-brand-green [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand-green [&::-webkit-slider-thumb]:shadow-md"
         />
@@ -262,8 +272,8 @@ export default function ProfileEditorPage() {
 
   if (error || !profile) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <AlertTriangle className="h-10 w-10 text-destructive" />
+      <div role="alert" className="flex flex-col items-center justify-center gap-4 py-20">
+        <AlertTriangle className="h-10 w-10 text-destructive" aria-hidden="true" />
         <p className="text-sm text-muted-foreground">{error ?? "Profile not found"}</p>
         <Button variant="outline" onClick={() => window.location.reload()}>
           Try Again
@@ -348,14 +358,19 @@ export default function ProfileEditorPage() {
             <div className="rounded-2xl border bg-white p-6 shadow-sm">
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <Label htmlFor="tradingName">Trading Name *</Label>
+                  <Label htmlFor="tradingName">
+                    Trading Name <span aria-hidden="true">*</span>
+                  </Label>
                   <Input
                     id="tradingName"
                     {...form.register("tradingName")}
+                    aria-required="true"
+                    aria-invalid={!!form.formState.errors.tradingName}
+                    aria-describedby={form.formState.errors.tradingName ? "tradingName-error" : undefined}
                     className="mt-1"
                   />
                   {form.formState.errors.tradingName && (
-                    <p className="mt-1 text-xs text-destructive">
+                    <p id="tradingName-error" role="alert" className="mt-1 text-xs text-destructive">
                       {form.formState.errors.tradingName.message}
                     </p>
                   )}
@@ -492,10 +507,12 @@ export default function ProfileEditorPage() {
                     id="website"
                     {...form.register("website")}
                     placeholder="https://example.co.za"
+                    aria-invalid={!!form.formState.errors.website}
+                    aria-describedby={form.formState.errors.website ? "website-error" : undefined}
                     className="mt-1"
                   />
                   {form.formState.errors.website && (
-                    <p className="mt-1 text-xs text-destructive">
+                    <p id="website-error" role="alert" className="mt-1 text-xs text-destructive">
                       {form.formState.errors.website.message}
                     </p>
                   )}
@@ -505,6 +522,8 @@ export default function ProfileEditorPage() {
                   <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
+                    type="tel"
+                    autoComplete="tel"
                     {...form.register("phone")}
                     placeholder="+27 11 000 0000"
                     className="mt-1"
@@ -518,10 +537,12 @@ export default function ProfileEditorPage() {
                     type="email"
                     {...form.register("email")}
                     placeholder="info@company.co.za"
+                    aria-invalid={!!form.formState.errors.email}
+                    aria-describedby={form.formState.errors.email ? "email-error" : undefined}
                     className="mt-1"
                   />
                   {form.formState.errors.email && (
-                    <p className="mt-1 text-xs text-destructive">
+                    <p id="email-error" role="alert" className="mt-1 text-xs text-destructive">
                       {form.formState.errors.email.message}
                     </p>
                   )}
@@ -564,7 +585,7 @@ export default function ProfileEditorPage() {
                     control={form.control}
                     render={({ field }) => (
                       <div className="flex items-center justify-between rounded-xl border p-4">
-                        <div>
+                        <div id="carbon-reporting-label">
                           <p className="text-sm font-medium">Carbon Reporting</p>
                           <p className="text-xs text-muted-foreground">
                             Does your organization publish carbon emission reports?
@@ -573,6 +594,7 @@ export default function ProfileEditorPage() {
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          aria-labelledby="carbon-reporting-label"
                         />
                       </div>
                     )}
@@ -583,7 +605,7 @@ export default function ProfileEditorPage() {
                     control={form.control}
                     render={({ field }) => (
                       <div className="flex items-center justify-between rounded-xl border p-4">
-                        <div>
+                        <div id="water-management-label">
                           <p className="text-sm font-medium">Water Management</p>
                           <p className="text-xs text-muted-foreground">
                             Do you have formal water management practices?
@@ -592,6 +614,7 @@ export default function ProfileEditorPage() {
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          aria-labelledby="water-management-label"
                         />
                       </div>
                     )}
@@ -602,7 +625,7 @@ export default function ProfileEditorPage() {
                     control={form.control}
                     render={({ field }) => (
                       <div className="flex items-center justify-between rounded-xl border p-4">
-                        <div>
+                        <div id="sustainable-packaging-label">
                           <p className="text-sm font-medium">Sustainable Packaging</p>
                           <p className="text-xs text-muted-foreground">
                             Do you use sustainable or recyclable packaging?
@@ -611,6 +634,7 @@ export default function ProfileEditorPage() {
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          aria-labelledby="sustainable-packaging-label"
                         />
                       </div>
                     )}

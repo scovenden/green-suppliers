@@ -140,7 +140,7 @@ function CertificationCard({ cert }: { cert: CertificationDto }) {
 
 function CertificationsSkeleton() {
   return (
-    <div className="space-y-6">
+    <div role="status" aria-label="Loading certifications" className="space-y-6">
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-9 w-40" />
@@ -150,6 +150,7 @@ function CertificationsSkeleton() {
           <Skeleton key={i} className="h-36 rounded-2xl" />
         ))}
       </div>
+      <span className="sr-only">Loading certifications data</span>
     </div>
   );
 }
@@ -246,8 +247,8 @@ export default function CertificationsPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <AlertTriangle className="h-10 w-10 text-destructive" />
+      <div role="alert" className="flex flex-col items-center justify-center gap-4 py-20">
+        <AlertTriangle className="h-10 w-10 text-destructive" aria-hidden="true" />
         <p className="text-sm text-muted-foreground">{error}</p>
         <Button variant="outline" onClick={() => window.location.reload()}>
           Try Again
@@ -291,7 +292,9 @@ export default function CertificationsPage() {
               className="space-y-4"
             >
               <div>
-                <Label htmlFor="certType">Certification Type *</Label>
+                <Label htmlFor="certType">
+                  Certification Type <span aria-hidden="true">*</span>
+                </Label>
                 <Controller
                   name="certificationTypeId"
                   control={form.control}
@@ -300,7 +303,12 @@ export default function CertificationsPage() {
                       value={field.value || undefined}
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger
+                        className="mt-1"
+                        aria-required="true"
+                        aria-invalid={!!form.formState.errors.certificationTypeId}
+                        aria-describedby={form.formState.errors.certificationTypeId ? "certType-error" : undefined}
+                      >
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -316,7 +324,7 @@ export default function CertificationsPage() {
                   )}
                 />
                 {form.formState.errors.certificationTypeId && (
-                  <p className="mt-1 text-xs text-destructive">
+                  <p id="certType-error" role="alert" className="mt-1 text-xs text-destructive">
                     {form.formState.errors.certificationTypeId.message}
                   </p>
                 )}
@@ -358,18 +366,22 @@ export default function CertificationsPage() {
                 <div className="mt-1">
                   <label
                     htmlFor="certFile"
-                    className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-dashed p-4 text-sm text-muted-foreground transition-colors hover:border-brand-green hover:bg-brand-green-light"
+                    className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-dashed p-4 text-sm text-muted-foreground transition-colors hover:border-brand-green hover:bg-brand-green-light focus-within:border-brand-green focus-within:ring-2 focus-within:ring-brand-green/30"
                   >
-                    <Upload className="h-5 w-5" />
+                    <Upload className="h-5 w-5" aria-hidden="true" />
                     {selectedFile ? selectedFile.name : "Click to upload PDF or image"}
                   </label>
                   <input
                     id="certFile"
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
-                    className="hidden"
+                    className="sr-only"
+                    aria-describedby="certFile-hint"
                     onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
                   />
+                  <p id="certFile-hint" className="mt-1 text-xs text-muted-foreground">
+                    Accepted formats: PDF, JPG, PNG
+                  </p>
                 </div>
               </div>
 

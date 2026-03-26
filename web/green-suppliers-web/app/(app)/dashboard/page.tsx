@@ -34,8 +34,13 @@ function CompletenessRing({
   const offset = circumference - (percent / 100) * circumference;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label={`Profile ${percent}% complete`}
+    >
+      <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -58,9 +63,9 @@ function CompletenessRing({
           className="text-brand-green transition-all duration-700 ease-out"
         />
       </svg>
-      <div className="absolute flex flex-col items-center justify-center">
+      <div className="absolute flex flex-col items-center justify-center" aria-hidden="true">
         <span className="text-2xl font-bold text-foreground">{percent}%</span>
-        <span className="text-[10px] text-muted-foreground">Complete</span>
+        <span className="text-xs text-muted-foreground">Complete</span>
       </div>
     </div>
   );
@@ -87,6 +92,7 @@ function StatCard({
           <div className="mt-2 text-2xl font-bold text-foreground">{value}</div>
         </div>
         <div
+          aria-hidden="true"
           className={
             accent
               ? "flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green/10"
@@ -119,7 +125,7 @@ function VerificationStatusBadge({ status }: { status: string }) {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
+    <div role="status" aria-label="Loading dashboard" className="space-y-6">
       <div className="flex items-center gap-4">
         <Skeleton className="h-8 w-48" />
       </div>
@@ -132,6 +138,7 @@ function DashboardSkeleton() {
         <Skeleton className="h-64 rounded-2xl lg:col-span-1" />
         <Skeleton className="h-64 rounded-2xl lg:col-span-2" />
       </div>
+      <span className="sr-only">Loading dashboard data</span>
     </div>
   );
 }
@@ -169,8 +176,8 @@ export default function SupplierDashboardPage() {
 
   if (error || !stats) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <AlertTriangle className="h-10 w-10 text-destructive" />
+      <div role="alert" className="flex flex-col items-center justify-center gap-4 py-20">
+        <AlertTriangle className="h-10 w-10 text-destructive" aria-hidden="true" />
         <p className="text-sm text-muted-foreground">{error ?? "Something went wrong"}</p>
         <Button variant="outline" onClick={() => window.location.reload()}>
           Try Again

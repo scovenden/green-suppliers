@@ -89,8 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const user: AdminUser = {
           id: payload.sub,
           email: payload.email,
-          displayName: payload.email.split("@")[0],
+          displayName: payload.displayName ?? payload.email.split("@")[0],
           role: payload.role,
+          organizationName: payload.organizationName,
         };
         const tokens: AuthTokens = {
           accessToken: res.data.accessToken,
@@ -129,8 +130,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const user: AdminUser = {
             id: payload.sub,
             email: payload.email,
-            displayName: payload.email.split("@")[0],
+            displayName: payload.displayName ?? payload.email.split("@")[0],
             role: payload.role,
+            organizationName: payload.organizationName,
           };
           const tokens: AuthTokens = {
             accessToken: res.data.accessToken,

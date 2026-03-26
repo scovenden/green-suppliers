@@ -13,9 +13,18 @@ public class AddCertificationValidator : AbstractValidator<AddCertificationReque
         RuleFor(x => x.CertificateNumber)
             .MaximumLength(100).WithMessage("Certificate number must not exceed 100 characters.");
 
+        RuleFor(x => x.IssuedAt)
+            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
+            .WithMessage("Issue date cannot be in the future.")
+            .When(x => x.IssuedAt.HasValue);
+
         RuleFor(x => x.ExpiresAt)
             .GreaterThan(x => x.IssuedAt)
             .WithMessage("Expiry date must be after the issue date.")
             .When(x => x.IssuedAt.HasValue && x.ExpiresAt.HasValue);
+
+        RuleFor(x => x.DocumentId)
+            .NotEqual(Guid.Empty).WithMessage("Document ID must not be an empty GUID.")
+            .When(x => x.DocumentId.HasValue);
     }
 }
