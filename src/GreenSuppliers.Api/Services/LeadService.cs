@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using GreenSuppliers.Api.Data;
 using GreenSuppliers.Api.Helpers;
@@ -45,14 +46,18 @@ public class LeadService
 
         _context.Leads.Add(lead);
 
-        // Queue email notification
+        // Queue email notification -- HTML-encode all user-supplied values to prevent XSS
+        var safeName = WebUtility.HtmlEncode(request.ContactName);
+        var safeEmail = WebUtility.HtmlEncode(request.ContactEmail);
+        var safeMessage = WebUtility.HtmlEncode(request.Message);
+
         _context.EmailQueue.Add(new EmailQueueItem
         {
             Id = Guid.NewGuid(),
             ToEmail = request.ContactEmail,
             ToName = request.ContactName,
-            Subject = $"New lead inquiry from {request.ContactName}",
-            BodyHtml = $"<p>New inquiry from {request.ContactName} ({request.ContactEmail})</p><p>{request.Message}</p>",
+            Subject = $"New lead inquiry from {safeName}",
+            BodyHtml = $"<p>New inquiry from {safeName} ({safeEmail})</p><p>{safeMessage}</p>",
             TemplateType = "lead_notification",
             TemplateData = JsonSerializer.Serialize(new { lead.Id, lead.SupplierProfileId, request.ContactName, request.ContactEmail }),
             Status = "pending",
@@ -112,15 +117,19 @@ public class LeadService
 
         _context.Leads.Add(lead);
 
-        // Queue email notification to admin
+        // Queue email notification to admin -- HTML-encode all user-supplied values to prevent XSS
         var adminEmail = _configuration["Notifications:AdminEmail"] ?? "admin@greensuppliers.co.za";
+        var safeCompanyName = WebUtility.HtmlEncode(request.CompanyName);
+        var safeContactName = WebUtility.HtmlEncode(request.ContactName);
+        var safeMessageHtml = WebUtility.HtmlEncode(message);
+
         _context.EmailQueue.Add(new EmailQueueItem
         {
             Id = Guid.NewGuid(),
             ToEmail = adminEmail,
             ToName = "Green Suppliers Admin",
-            Subject = $"New Get Listed request from {request.CompanyName}",
-            BodyHtml = $"<p>New listing request from {request.ContactName} at {request.CompanyName}</p><p>{message}</p>",
+            Subject = $"New Get Listed request from {safeCompanyName}",
+            BodyHtml = $"<p>New listing request from {safeContactName} at {safeCompanyName}</p><p>{safeMessageHtml}</p>",
             TemplateType = "get_listed_notification",
             TemplateData = JsonSerializer.Serialize(new { lead.Id, request.CompanyName, request.ContactName, request.ContactEmail }),
             Status = "pending",

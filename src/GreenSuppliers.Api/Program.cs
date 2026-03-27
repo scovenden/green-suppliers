@@ -50,6 +50,18 @@ builder.Services.AddScoped<BillingService>();
 // JWT Authentication
 builder.Services.AddScoped<JwtTokenService>();
 
+// SECURITY: Validate JWT secret is set and strong enough
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Contains("MUST-BE-SET") || jwtSecret.Length < 32)
+{
+    if (!builder.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException(
+            "JWT secret must be set via environment variable or Key Vault in production. " +
+            "Minimum 32 characters. Set Jwt:Secret in configuration.");
+    }
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -90,21 +102,35 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Buyer", policy => policy.RequireClaim("role", "Buyer"));
 });
 
-// Rate Limiting (global, applied to auth endpoints via path matching)
+// Rate Limiting (global, applied to auth and public submission endpoints via path matching)
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
         var path = context.Request.Path.Value ?? "";
+        // Auth endpoints: strict rate limiting (10 per 15 min in production)
         if (path.Contains("/auth/login") || path.Contains("/auth/refresh")
             || path.Contains("/auth/register") || path.Contains("/auth/forgot-password")
             || path.Contains("/auth/reset-password"))
         {
             return RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                partitionKey: $"auth:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = builder.Environment.IsDevelopment() ? 1000 : 10,
+                    Window = TimeSpan.FromMinutes(15),
+                    QueueLimit = 0,
+                });
+        }
+        // Lead submission and get-listed: rate limit to prevent spam (20 per 15 min)
+        if ((path.Contains("/leads") || path.Contains("/get-listed"))
+            && context.Request.Method == "POST")
+        {
+            return RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: $"leads:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = builder.Environment.IsDevelopment() ? 1000 : 20,
                     Window = TimeSpan.FromMinutes(15),
                     QueueLimit = 0,
                 });

@@ -135,12 +135,17 @@ public static class SeedData
         context.Organizations.Add(adminOrg);
 
         // Admin User
+        // SECURITY: This is a seed-only password for development. The admin MUST change this
+        // immediately after first login. In production, use an environment variable or
+        // Azure Key Vault to inject the initial admin password.
+        var initialAdminPassword = Environment.GetEnvironmentVariable("SEED_ADMIN_PASSWORD")
+            ?? "GreenSuppl!3rs-S33d-2026_Dev";
         var adminUser = new User
         {
             Id = Guid.NewGuid(),
             OrganizationId = orgId,
             Email = "admin@greensuppliers.co.za",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("ChangeMe123!"),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(initialAdminPassword),
             FirstName = "Admin",
             LastName = "User",
             Role = UserRole.Admin,

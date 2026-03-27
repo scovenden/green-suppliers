@@ -30,6 +30,9 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
+    private const int MaxFailedLoginAttempts = 5;
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+
     [HttpPost("login")]
     // Rate limiting applied via middleware in Program.cs
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
@@ -56,9 +59,26 @@ public class AuthController : ControllerBase
             return Unauthorized(ApiResponse<LoginResponse>.Fail("INVALID_CREDENTIALS", "Invalid email or password."));
         }
 
+        // Check account lockout
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTime.UtcNow)
+        {
+            _logger.LogWarning("Login attempt for locked-out user: {Email}. Lockout ends at {LockoutEnd}", normalizedEmail, user.LockoutEnd.Value);
+            return Unauthorized(ApiResponse<LoginResponse>.Fail("ACCOUNT_LOCKED",
+                "Account temporarily locked due to multiple failed login attempts. Please try again later."));
+        }
+
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            _logger.LogWarning("Failed login attempt for user: {Email}", normalizedEmail);
+            // Increment failed login attempts and apply lockout if threshold reached
+            user.FailedLoginAttempts++;
+            if (user.FailedLoginAttempts >= MaxFailedLoginAttempts)
+            {
+                user.LockoutEnd = DateTime.UtcNow.Add(LockoutDuration);
+                _logger.LogWarning("User {Email} locked out after {Attempts} failed attempts", normalizedEmail, user.FailedLoginAttempts);
+            }
+            await _db.SaveChangesAsync(cancellationToken);
+
+            _logger.LogWarning("Failed login attempt for user: {Email} (attempt {Attempt})", normalizedEmail, user.FailedLoginAttempts);
             return Unauthorized(ApiResponse<LoginResponse>.Fail("INVALID_CREDENTIALS", "Invalid email or password."));
         }
 
@@ -69,7 +89,9 @@ public class AuthController : ControllerBase
             return StatusCode(403, ApiResponse<LoginResponse>.Fail("EMAIL_NOT_VERIFIED", "Please verify your email address before logging in."));
         }
 
-        // Update last login timestamp
+        // Successful login: reset failed attempts and lockout
+        user.FailedLoginAttempts = 0;
+        user.LockoutEnd = null;
         user.LastLoginAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
 
