@@ -27,6 +27,7 @@ export interface SupplierSearchResult {
   logoUrl: string | null;
   industries: string[];
   isVerified: boolean;
+  sdgs?: SdgDto[];
 }
 
 export interface SupplierProfile {
@@ -59,6 +60,7 @@ export interface SupplierProfile {
   industries: { id: string; name: string; slug: string }[];
   serviceTags: { id: string; name: string; slug: string }[];
   certifications: CertificationDto[];
+  sdgs?: SdgDto[];
 }
 
 export interface CertificationDto {
@@ -389,6 +391,30 @@ export interface CheckoutResult {
 }
 
 export type SubscriptionStatus = "pending" | "trial" | "active" | "past_due" | "cancelled" | "expired";
+
+// --- Sprint 5: SDG, Analytics, Sponsored Placements ---
+
+export interface SdgDto {
+  id: number;
+  name: string;
+  description: string;
+  color: string;
+}
+
+export interface ProfileAnalytics {
+  totalViews: number;
+  viewsThisMonth: number;
+  viewsLastMonth: number;
+  viewsByDay: { date: string; count: number }[];
+  totalLeads: number;
+  leadsByMonth: { month: string; count: number }[];
+  searchAppearances: number;
+}
+
+export interface FeaturedSupplier extends SupplierSearchResult {
+  sdgs?: SdgDto[];
+  isSponsored?: boolean;
+}
 
 export function getEsgBadgeColor(level: string) {
   switch (level.toLowerCase()) {

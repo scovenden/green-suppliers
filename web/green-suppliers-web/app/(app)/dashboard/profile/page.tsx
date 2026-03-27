@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { apiGetAuth, apiGet, apiPut } from "@/lib/api-client";
-import type { SupplierProfile, Industry } from "@/lib/types";
+import type { SupplierProfile, Industry, SdgDto } from "@/lib/types";
 import {
   supplierProfileSchema,
   type SupplierProfileFormData,
@@ -131,6 +131,9 @@ export default function ProfileEditorPage() {
   const { token } = useAuth();
   const [profile, setProfile] = useState<SupplierProfile | null>(null);
   const [industries, setIndustries] = useState<Industry[]>([]);
+  const [allSdgs, setAllSdgs] = useState<SdgDto[]>([]);
+  const [selectedSdgIds, setSelectedSdgIds] = useState<number[]>([]);
+  const [savingSdgs, setSavingSdgs] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -164,9 +167,10 @@ export default function ProfileEditorPage() {
     setLoading(true);
     setError(null);
 
-    const [profileRes, industriesRes] = await Promise.all([
+    const [profileRes, industriesRes, sdgsRes] = await Promise.all([
       apiGetAuth<SupplierProfile>("/supplier/me/profile", token),
       apiGet<Industry[]>("/industries"),
+      apiGet<SdgDto[]>("/sdgs"),
     ]);
 
     if (profileRes.success && profileRes.data) {
@@ -197,6 +201,15 @@ export default function ProfileEditorPage() {
 
     if (industriesRes.success && industriesRes.data) {
       setIndustries(industriesRes.data);
+    }
+
+    if (sdgsRes.success && sdgsRes.data) {
+      setAllSdgs(sdgsRes.data);
+    }
+
+    // Set selected SDGs from the loaded profile
+    if (profileRes.success && profileRes.data?.sdgs) {
+      setSelectedSdgIds(profileRes.data.sdgs.map((s) => s.id));
     }
 
     setLoading(false);
@@ -247,6 +260,31 @@ export default function ProfileEditorPage() {
       toast.error(res.error?.message ?? "Failed to publish profile");
     }
     setPublishing(false);
+  }
+
+  async function handleSaveSdgs() {
+    if (!token) return;
+    setSavingSdgs(true);
+    const res = await apiPut<SupplierProfile>(
+      "/supplier/me/profile/sdgs",
+      { sdgIds: selectedSdgIds },
+      token
+    );
+    if (res.success) {
+      toast.success("SDG goals saved successfully");
+      if (res.data) setProfile(res.data);
+    } else {
+      toast.error(res.error?.message ?? "Failed to save SDG goals");
+    }
+    setSavingSdgs(false);
+  }
+
+  function toggleSdg(sdgId: number) {
+    setSelectedSdgIds((prev) =>
+      prev.includes(sdgId)
+        ? prev.filter((id) => id !== sdgId)
+        : [...prev, sdgId]
+    );
   }
 
   // Calculate a rough client-side completeness percentage
@@ -350,6 +388,7 @@ export default function ProfileEditorPage() {
             <TabsTrigger value="location">Location</TabsTrigger>
             <TabsTrigger value="contact">Contact</TabsTrigger>
             <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
+            <TabsTrigger value="sdgs">SDG Goals</TabsTrigger>
             <TabsTrigger value="industries">Industries</TabsTrigger>
           </TabsList>
 
@@ -640,6 +679,63 @@ export default function ProfileEditorPage() {
                     )}
                   />
                 </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* SDG Goals Tab */}
+          <TabsContent value="sdgs">
+            <div className="rounded-2xl border bg-white p-6 shadow-sm">
+              <p className="mb-4 text-sm text-muted-foreground">
+                Select the UN Sustainable Development Goals your company contributes to.
+                This helps demonstrate your global sustainability impact to buyers.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {allSdgs.map((sdg) => {
+                  const checked = selectedSdgIds.includes(sdg.id);
+                  return (
+                    <label
+                      key={sdg.id}
+                      className="flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors hover:bg-muted/30"
+                      style={{
+                        borderColor: checked ? sdg.color : undefined,
+                        backgroundColor: checked ? `${sdg.color}10` : undefined,
+                      }}
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={() => toggleSdg(sdg.id)}
+                      />
+                      <span
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                        style={{ backgroundColor: sdg.color }}
+                      >
+                        {sdg.id}
+                      </span>
+                      <span className="text-sm font-medium">{sdg.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {allSdgs.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No SDG goals available.
+                </p>
+              )}
+              <div className="mt-6">
+                <Button
+                  type="button"
+                  onClick={handleSaveSdgs}
+                  disabled={savingSdgs}
+                  className="min-w-[140px]"
+                >
+                  {savingSdgs ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  {savingSdgs ? "Saving..." : "Save SDG Goals"}
+                </Button>
               </div>
             </div>
           </TabsContent>

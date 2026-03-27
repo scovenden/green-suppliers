@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   User,
   Inbox,
+  BarChart3,
   ShieldCheck,
   CreditCard,
   Settings,
@@ -30,6 +31,7 @@ interface NavItem {
 const BASE_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/dashboard/leads", label: "Leads", icon: Inbox },
+  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/certifications", label: "Certifications", icon: ShieldCheck },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },

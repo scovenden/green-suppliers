@@ -4,7 +4,7 @@ import { SearchHero } from "@/components/search/search-hero";
 import { SupplierCard } from "@/components/suppliers/supplier-card";
 import { TrustBadges } from "@/components/suppliers/trust-badges";
 import { apiGet } from "@/lib/api-client";
-import type { SupplierSearchResult, Industry } from "@/lib/types";
+import type { SupplierSearchResult, Industry, FeaturedSupplier } from "@/lib/types";
 import {
   ArrowRight,
   CheckCircle,
@@ -124,19 +124,33 @@ const industryIconBg: Record<string, string> = {
 // Data fetching
 // ---------------------------------------------------------------------------
 
-async function getFeaturedSuppliers(): Promise<SupplierSearchResult[]> {
+async function getFeaturedSuppliers(): Promise<{ suppliers: SupplierSearchResult[]; hasSponsored: boolean }> {
+  // First try the featured/sponsored endpoint
+  try {
+    const featuredRes = await apiGet<FeaturedSupplier[]>(
+      "/suppliers/featured",
+      { revalidate: 300 }
+    );
+    if (featuredRes.success && featuredRes.data && featuredRes.data.length > 0) {
+      return { suppliers: featuredRes.data, hasSponsored: true };
+    }
+  } catch {
+    // Featured endpoint not available, fallback to top ESG
+  }
+
+  // Fallback: top ESG suppliers
   try {
     const res = await apiGet<{ items: SupplierSearchResult[] }>(
       "/suppliers?pageSize=3&sortBy=esgScore&sortDir=desc",
       { revalidate: 300 }
     );
     if (res.success && res.data?.items && res.data.items.length > 0) {
-      return res.data.items;
+      return { suppliers: res.data.items, hasSponsored: false };
     }
   } catch {
     // API unreachable — fall back to static data
   }
-  return fallbackSuppliers;
+  return { suppliers: fallbackSuppliers, hasSponsored: false };
 }
 
 async function getIndustries(): Promise<typeof fallbackIndustries> {
@@ -323,10 +337,11 @@ const trustPartners = [
 // ---------------------------------------------------------------------------
 
 export default async function HomePage() {
-  const [suppliers, industries] = await Promise.all([
+  const [featured, industries] = await Promise.all([
     getFeaturedSuppliers(),
     getIndustries(),
   ]);
+  const { suppliers, hasSponsored } = featured;
 
   return (
     <div className="flex flex-col">
@@ -418,19 +433,29 @@ export default async function HomePage() {
           <div className="text-center">
             <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-brand-green-light px-3 py-1 text-xs font-semibold text-brand-green">
               <Award className="h-3.5 w-3.5" />
-              Top Rated
+              {hasSponsored ? "Featured" : "Top Rated"}
             </div>
             <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
               Featured Suppliers
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-lg text-gray-500">
-              Discover top-rated green suppliers with the highest ESG scores
+              {hasSponsored
+                ? "Sponsored suppliers showcasing their sustainability commitments"
+                : "Discover top-rated green suppliers with the highest ESG scores"}
             </p>
           </div>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {suppliers.map((supplier) => (
-              <SupplierCard key={supplier.id} supplier={supplier} />
+              <div key={supplier.id} className="relative">
+                {hasSponsored && (
+                  <span className="absolute right-3 top-5 z-10 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700 shadow-sm">
+                    <Award className="h-3 w-3" />
+                    Sponsored
+                  </span>
+                )}
+                <SupplierCard supplier={supplier} />
+              </div>
             ))}
           </div>
 

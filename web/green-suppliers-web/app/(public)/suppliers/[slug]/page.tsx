@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { apiGet } from "@/lib/api-client";
-import type { SupplierProfile, CertificationDto } from "@/lib/types";
+import type { SupplierProfile, CertificationDto, SdgDto } from "@/lib/types";
 import { getEsgBadgeColor } from "@/lib/types";
 import { EsgBadge } from "@/components/suppliers/esg-badge";
 import { LeadForm } from "@/components/leads/lead-form";
@@ -320,6 +320,23 @@ export default async function SupplierProfilePage({ params }: PageProps) {
               </section>
             )}
 
+            {/* UN Sustainable Development Goals */}
+            {supplier.sdgs && supplier.sdgs.length > 0 && (
+              <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  UN Sustainable Development Goals
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  This supplier contributes to the following global sustainability goals.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {supplier.sdgs.map((sdg) => (
+                    <SdgCard key={sdg.id} sdg={sdg} />
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* ESG Methodology */}
             <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -491,6 +508,25 @@ function formatDate(dateStr: string): string {
   } catch {
     return dateStr;
   }
+}
+
+function SdgCard({ sdg }: { sdg: SdgDto }) {
+  return (
+    <div className="flex overflow-hidden rounded-xl border border-gray-100 shadow-sm">
+      <div
+        className="flex w-16 shrink-0 flex-col items-center justify-center"
+        style={{ backgroundColor: sdg.color }}
+      >
+        <span className="text-2xl font-bold text-white">{sdg.id}</span>
+      </div>
+      <div className="flex-1 bg-gray-50/50 p-3">
+        <p className="text-sm font-semibold text-gray-900">{sdg.name}</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-gray-500">
+          {sdg.description}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function EsgLevelExplainer({

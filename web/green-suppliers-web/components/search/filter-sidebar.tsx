@@ -14,7 +14,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import type { Industry, Country } from "@/lib/types";
+import type { Industry, Country, SdgDto } from "@/lib/types";
 import { apiGet } from "@/lib/api-client";
 
 // ---------------------------------------------------------------------------
@@ -49,16 +49,40 @@ const esgLevelColors: Record<string, string> = {
 // Filter content (shared between desktop sidebar and mobile sheet)
 // ---------------------------------------------------------------------------
 
+// Abbreviated SDG names for pill labels
+const sdgShortNames: Record<number, string> = {
+  1: "No Poverty",
+  2: "Zero Hunger",
+  3: "Good Health",
+  4: "Education",
+  5: "Gender Equality",
+  6: "Clean Water",
+  7: "Clean Energy",
+  8: "Decent Work",
+  9: "Industry & Infra",
+  10: "Reduced Inequality",
+  11: "Sustainable Cities",
+  12: "Responsible Prod.",
+  13: "Climate Action",
+  14: "Life Below Water",
+  15: "Life on Land",
+  16: "Peace & Justice",
+  17: "Partnerships",
+};
+
 interface FilterContentProps {
   countries: Country[];
   industries: Industry[];
+  sdgs: SdgDto[];
   selectedCountry: string;
   selectedIndustry: string;
   selectedEsgLevels: string[];
+  selectedSdgs: number[];
   verifiedOnly: boolean;
   onCountryChange: (value: string) => void;
   onIndustryChange: (value: string) => void;
   onEsgToggle: (level: string) => void;
+  onSdgToggle: (sdgId: number) => void;
   onVerifiedToggle: () => void;
   onClear: () => void;
   hasActiveFilters: boolean;
@@ -67,13 +91,16 @@ interface FilterContentProps {
 function FilterContent({
   countries,
   industries,
+  sdgs,
   selectedCountry,
   selectedIndustry,
   selectedEsgLevels,
+  selectedSdgs,
   verifiedOnly,
   onCountryChange,
   onIndustryChange,
   onEsgToggle,
+  onSdgToggle,
   onVerifiedToggle,
   onClear,
   hasActiveFilters,
@@ -136,6 +163,39 @@ function FilterContent({
         </div>
       </div>
 
+      {/* SDG Goals filter */}
+      {sdgs.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label className="text-sm font-semibold text-gray-700">SDG Goals</Label>
+          <div className="flex flex-wrap gap-1.5">
+            {sdgs.map((sdg) => {
+              const isSelected = selectedSdgs.includes(sdg.id);
+              return (
+                <button
+                  key={sdg.id}
+                  type="button"
+                  onClick={() => onSdgToggle(sdg.id)}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-200",
+                    isSelected
+                      ? "text-white shadow-sm ring-2 ring-offset-1"
+                      : "text-white/80 opacity-70 hover:opacity-100"
+                  )}
+                  style={{
+                    backgroundColor: sdg.color,
+                    ...(isSelected ? { ringColor: sdg.color } : {}),
+                  }}
+                  title={sdg.name}
+                >
+                  <span>{sdg.id}</span>
+                  <span className="hidden sm:inline">{sdgShortNames[sdg.id] ?? sdg.name.slice(0, 12)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Verified only */}
       <div className="flex flex-col gap-2">
         <Label className="text-sm font-semibold text-gray-700">Verification</Label>
@@ -175,27 +235,32 @@ export function FilterSidebar() {
 
   const [countries, setCountries] = React.useState<Country[]>(fallbackCountries);
   const [industries, setIndustries] = React.useState<Industry[]>(fallbackIndustries);
+  const [sdgs, setSdgs] = React.useState<SdgDto[]>([]);
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   // Read current filter state from URL
   const selectedCountry = searchParams.get("countryCode") ?? "";
   const selectedIndustry = searchParams.get("industrySlug") ?? "";
   const selectedEsgLevels = searchParams.get("esgLevel")?.split(",").filter(Boolean) ?? [];
+  const selectedSdgs = searchParams.get("sdg")?.split(",").filter(Boolean).map(Number).filter((n) => !isNaN(n)) ?? [];
   const verifiedOnly = searchParams.get("verificationStatus") === "Verified";
 
   const hasActiveFilters =
     selectedCountry !== "" ||
     selectedIndustry !== "" ||
     selectedEsgLevels.length > 0 ||
+    selectedSdgs.length > 0 ||
     verifiedOnly;
 
   // Fetch countries and industries on mount
   React.useEffect(() => {
     async function loadFilterData() {
       try {
-        const [countriesRes, industriesRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/countries`),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/industries`),
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+        const [countriesRes, industriesRes, sdgsRes] = await Promise.all([
+          fetch(`${apiBase}/countries`),
+          fetch(`${apiBase}/industries`),
+          fetch(`${apiBase}/sdgs`),
         ]);
 
         if (countriesRes.ok) {
@@ -209,6 +274,13 @@ export function FilterSidebar() {
           const iData = await industriesRes.json();
           if (iData.success && iData.data && Array.isArray(iData.data) && iData.data.length > 0) {
             setIndustries(iData.data);
+          }
+        }
+
+        if (sdgsRes.ok) {
+          const sData = await sdgsRes.json();
+          if (sData.success && sData.data && Array.isArray(sData.data) && sData.data.length > 0) {
+            setSdgs(sData.data);
           }
         }
       } catch {
@@ -252,6 +324,17 @@ export function FilterSidebar() {
     updateParams({ esgLevel: current.length > 0 ? current.join(",") : null });
   }
 
+  function handleSdgToggle(sdgId: number) {
+    const current = [...selectedSdgs];
+    const idx = current.indexOf(sdgId);
+    if (idx >= 0) {
+      current.splice(idx, 1);
+    } else {
+      current.push(sdgId);
+    }
+    updateParams({ sdg: current.length > 0 ? current.join(",") : null });
+  }
+
   function handleVerifiedToggle() {
     updateParams({
       verificationStatus: verifiedOnly ? null : "Verified",
@@ -268,13 +351,16 @@ export function FilterSidebar() {
   const filterProps: FilterContentProps = {
     countries,
     industries,
+    sdgs,
     selectedCountry,
     selectedIndustry,
     selectedEsgLevels,
+    selectedSdgs,
     verifiedOnly,
     onCountryChange: handleCountryChange,
     onIndustryChange: handleIndustryChange,
     onEsgToggle: handleEsgToggle,
+    onSdgToggle: handleSdgToggle,
     onVerifiedToggle: handleVerifiedToggle,
     onClear: handleClear,
     hasActiveFilters,

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { SupplierSearchResult } from "@/lib/types";
+import type { SupplierSearchResult, SdgDto } from "@/lib/types";
 import { getEsgBadgeColor } from "@/lib/types";
 import { EsgBadge } from "./esg-badge";
 import { SaveSupplierButton } from "./save-supplier-button";
@@ -135,6 +135,27 @@ export function SupplierCard({ supplier, className, buyerAuth }: SupplierCardPro
             {supplier.industries.length > 3 && (
               <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">
                 +{supplier.industries.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* SDG badges */}
+        {supplier.sdgs && supplier.sdgs.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {supplier.sdgs.slice(0, 5).map((sdg) => (
+              <span
+                key={sdg.id}
+                className="inline-flex h-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
+                style={{ backgroundColor: sdg.color }}
+                title={sdg.name}
+              >
+                {sdg.id}
+              </span>
+            ))}
+            {supplier.sdgs.length > 5 && (
+              <span className="inline-flex h-5 items-center justify-center rounded-full bg-gray-200 px-1.5 text-[10px] font-bold text-gray-600">
+                +{supplier.sdgs.length - 5}
               </span>
             )}
           </div>
