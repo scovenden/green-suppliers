@@ -15,6 +15,8 @@ public class SupplierMeController : ControllerBase
     private readonly SupplierMeLeadService _supplierMeLeadService;
     private readonly DocumentService _documentService;
     private readonly AuditService _auditService;
+    private readonly SdgService _sdgService;
+    private readonly ProfileAnalyticsService _analyticsService;
 
     private static readonly HashSet<string> AllowedMimeTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -47,12 +49,16 @@ public class SupplierMeController : ControllerBase
         SupplierMeService supplierMeService,
         SupplierMeLeadService supplierMeLeadService,
         DocumentService documentService,
-        AuditService auditService)
+        AuditService auditService,
+        SdgService sdgService,
+        ProfileAnalyticsService analyticsService)
     {
         _supplierMeService = supplierMeService;
         _supplierMeLeadService = supplierMeLeadService;
         _documentService = documentService;
         _auditService = auditService;
+        _sdgService = sdgService;
+        _analyticsService = analyticsService;
     }
 
     /// <summary>
@@ -322,5 +328,45 @@ public class SupplierMeController : ControllerBase
                 "Invalid status transition. Allowed: New -> Contacted, Contacted -> Closed."));
 
         return Ok(ApiResponse<object>.Ok(new { updated = true }));
+    }
+
+    /// <summary>
+    /// Update the SDGs linked to the authenticated supplier's profile.
+    /// </summary>
+    [HttpPut("profile/sdgs")]
+    public async Task<IActionResult> UpdateSdgs([FromBody] UpdateSdgsRequest request, CancellationToken ct)
+    {
+        var orgId = User.GetOrganizationId();
+        var userId = User.GetUserId();
+        var profileId = await _supplierMeService.GetProfileIdByOrgAsync(orgId, ct);
+
+        if (profileId is null)
+            return NotFound(ApiResponse<List<SdgDto>>.Fail("NOT_FOUND", "No supplier profile found for your organization."));
+
+        try
+        {
+            var sdgs = await _sdgService.UpdateSupplierSdgsAsync(profileId.Value, request.SdgIds, userId, ct);
+            return Ok(ApiResponse<List<SdgDto>>.Ok(sdgs));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<List<SdgDto>>.Fail("VALIDATION_ERROR", ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Get analytics for the authenticated supplier's profile: views, leads, daily/monthly breakdowns.
+    /// </summary>
+    [HttpGet("analytics")]
+    public async Task<IActionResult> GetAnalytics(CancellationToken ct)
+    {
+        var orgId = User.GetOrganizationId();
+        var profileId = await _supplierMeService.GetProfileIdByOrgAsync(orgId, ct);
+
+        if (profileId is null)
+            return NotFound(ApiResponse<ProfileAnalyticsDto>.Fail("NOT_FOUND", "No supplier profile found for your organization."));
+
+        var analytics = await _analyticsService.GetAnalyticsAsync(profileId.Value, ct);
+        return Ok(ApiResponse<ProfileAnalyticsDto>.Ok(analytics));
     }
 }

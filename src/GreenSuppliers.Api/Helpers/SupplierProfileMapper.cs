@@ -26,6 +26,7 @@ public static class SupplierProfileMapper
             .Include(p => p.SupplierIndustries).ThenInclude(si => si.Industry)
             .Include(p => p.SupplierServiceTags).ThenInclude(sst => sst.ServiceTag)
             .Include(p => p.Certifications).ThenInclude(c => c.CertificationType)
+            .Include(p => p.SupplierSdgs).ThenInclude(ss => ss.Sdg)
             .FirstAsync(p => p.Id == profileId, ct);
 
         return MapToDto(profile);
@@ -94,7 +95,14 @@ public static class SupplierProfileMapper
                 IssuedAt = c.IssuedAt,
                 ExpiresAt = c.ExpiresAt,
                 Status = c.Status.ToString()
-            }).ToList()
+            }).ToList(),
+            Sdgs = profile.SupplierSdgs.Select(ss => new SdgDto
+            {
+                Id = ss.Sdg.Id,
+                Name = ss.Sdg.Name,
+                Description = ss.Sdg.Description,
+                Color = ss.Sdg.Color
+            }).OrderBy(s => s.Id).ToList()
         };
     }
 }

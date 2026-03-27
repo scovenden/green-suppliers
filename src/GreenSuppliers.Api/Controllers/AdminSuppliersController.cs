@@ -16,11 +16,13 @@ public class AdminSuppliersController : ControllerBase
 {
     private readonly SupplierService _supplierService;
     private readonly GreenSuppliersDbContext _db;
+    private readonly SdgService _sdgService;
 
-    public AdminSuppliersController(SupplierService supplierService, GreenSuppliersDbContext db)
+    public AdminSuppliersController(SupplierService supplierService, GreenSuppliersDbContext db, SdgService sdgService)
     {
         _supplierService = supplierService;
         _db = db;
+        _sdgService = sdgService;
     }
 
     [HttpGet]
@@ -120,6 +122,28 @@ public class AdminSuppliersController : ControllerBase
         return Ok(ApiResponse<SupplierProfileDto>.Ok(profile!));
     }
 
+    /// <summary>
+    /// Update SDGs for any supplier profile. Admin only.
+    /// </summary>
+    [HttpPut("{id:guid}/sdgs")]
+    public async Task<IActionResult> UpdateSdgs(Guid id, [FromBody] UpdateSdgsRequest request, CancellationToken ct)
+    {
+        var adminUserId = User.GetUserId();
+
+        try
+        {
+            var sdgs = await _sdgService.UpdateSupplierSdgsAsync(id, request.SdgIds, adminUserId, ct);
+            return Ok(ApiResponse<List<SdgDto>>.Ok(sdgs));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<List<SdgDto>>.Fail("NOT_FOUND", ex.Message));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse<List<SdgDto>>.Fail("VALIDATION_ERROR", ex.Message));
+        }
+    }
 }
 
 public record ChangeStatusRequest(string Status, string? Reason);

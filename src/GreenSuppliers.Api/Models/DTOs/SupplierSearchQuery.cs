@@ -9,6 +9,7 @@ public class SupplierSearchQuery
     public string? VerificationStatus { get; set; }
     public string? CertTypeSlug { get; set; }
     public string? Tags { get; set; }
+    public int? Sdg { get; set; }
     public string SortBy { get; set; } = "esgScore";
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;

@@ -13,5 +13,6 @@ public class SupplierSearchResult
     public int EsgScore { get; set; }
     public string? LogoUrl { get; set; }
     public List<string> Industries { get; set; } = new();
+    public List<int> SdgIds { get; set; } = new();
     public bool IsVerified { get; set; }
 }

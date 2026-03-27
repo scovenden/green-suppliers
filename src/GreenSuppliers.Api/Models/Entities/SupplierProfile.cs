@@ -78,4 +78,6 @@ public class SupplierProfile
     public ICollection<SupplierCertification> Certifications { get; set; } = new List<SupplierCertification>();
     public ICollection<Document> Documents { get; set; } = new List<Document>();
     public ICollection<Lead> Leads { get; set; } = new List<Lead>();
+    public ICollection<SupplierSdg> SupplierSdgs { get; set; } = new List<SupplierSdg>();
+    public ICollection<ProfileView> ProfileViews { get; set; } = new List<ProfileView>();
 }

@@ -24,7 +24,11 @@ public class GreenSuppliersDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<SavedSupplier> SavedSuppliers => Set<SavedSupplier>();
 
-    // Phase 2 stubs
+    // Sprint 5 entities
+    public DbSet<Sdg> Sdgs => Set<Sdg>();
+    public DbSet<ProfileView> ProfileViews => Set<ProfileView>();
+
+    // Phase 2 entities
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<Payment> Payments => Set<Payment>();

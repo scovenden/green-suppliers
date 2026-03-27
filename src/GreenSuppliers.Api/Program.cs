@@ -46,6 +46,9 @@ builder.Services.AddScoped<BuyerService>();
 builder.Services.Configure<PayFastSettings>(builder.Configuration.GetSection("PayFast"));
 builder.Services.AddScoped<PayFastService>();
 builder.Services.AddScoped<BillingService>();
+builder.Services.AddScoped<SdgService>();
+builder.Services.AddScoped<ProfileAnalyticsService>();
+builder.Services.AddScoped<PlacementService>();
 
 // JWT Authentication
 builder.Services.AddScoped<JwtTokenService>();

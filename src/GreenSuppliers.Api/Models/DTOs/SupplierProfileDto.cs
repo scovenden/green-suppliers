@@ -41,6 +41,7 @@ public class SupplierProfileDto
     public List<SupplierIndustryDto> Industries { get; set; } = new();
     public List<SupplierServiceTagDto> ServiceTags { get; set; } = new();
     public List<SupplierCertificationDto> Certifications { get; set; } = new();
+    public List<SdgDto> Sdgs { get; set; } = new();
 }
 
 public class SupplierIndustryDto

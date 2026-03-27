@@ -30,6 +30,7 @@ public class SqlFullTextSearchService : ISupplierSearchService
                 .ThenInclude(sst => sst.ServiceTag)
             .Include(sp => sp.Certifications)
                 .ThenInclude(c => c.CertificationType)
+            .Include(sp => sp.SupplierSdgs)
             .Where(sp => sp.IsPublished && !sp.IsDeleted)
             .AsQueryable();
 
@@ -93,6 +94,14 @@ public class SqlFullTextSearchService : ISupplierSearchService
             }
         }
 
+        // Filter 8: SDG
+        if (searchQuery.Sdg.HasValue)
+        {
+            var sdgId = searchQuery.Sdg.Value;
+            query = query.Where(sp =>
+                sp.SupplierSdgs.Any(ss => ss.SdgId == sdgId));
+        }
+
         // Get total count before pagination
         var total = await query.CountAsync(ct);
 
@@ -122,6 +131,9 @@ public class SqlFullTextSearchService : ISupplierSearchService
                 LogoUrl = sp.LogoUrl,
                 Industries = sp.SupplierIndustries
                     .Select(si => si.Industry.Name)
+                    .ToList(),
+                SdgIds = sp.SupplierSdgs
+                    .Select(ss => ss.SdgId)
                     .ToList(),
                 IsVerified = sp.VerificationStatus == VerificationStatus.Verified
             })
