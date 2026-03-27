@@ -11,6 +11,7 @@ import {
   User,
   Inbox,
   ShieldCheck,
+  CreditCard,
   Settings,
   LogOut,
   Leaf,
@@ -31,6 +32,7 @@ const BASE_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/leads", label: "Leads", icon: Inbox },
   { href: "/dashboard/profile", label: "Profile", icon: User },
   { href: "/dashboard/certifications", label: "Certifications", icon: ShieldCheck },
+  { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

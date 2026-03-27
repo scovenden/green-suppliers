@@ -332,6 +332,64 @@ export interface SupplierLead {
   updatedAt: string;
 }
 
+// --- Sprint 4: Billing, Plans & Checkout ---
+
+export interface PlanDto {
+  id: string;
+  name: string;
+  displayName: string;
+  priceMonthly: number;
+  priceYearly: number;
+  currency: string;
+  maxLeadsPerMonth: number | null;
+  maxDocuments: number | null;
+  featuredListing: boolean;
+  analyticsAccess: boolean;
+  prioritySupport: boolean;
+  trialDays: number;
+  sortOrder: number;
+}
+
+export interface SubscriptionDto {
+  id: string;
+  organizationId: string;
+  planId: string;
+  planName: string;
+  planDisplayName: string;
+  status: string;
+  billingCycle: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  trialEnd: string | null;
+  cancelledAt: string | null;
+  createdAt: string;
+}
+
+export interface PaymentDto {
+  id: string;
+  subscriptionId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  provider: string;
+  externalId: string | null;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+export interface CheckoutRequest {
+  planId: string;
+  billingCycle: string;
+}
+
+export interface CheckoutResult {
+  subscriptionId: string;
+  paymentId: string;
+  checkoutUrl: string;
+}
+
+export type SubscriptionStatus = "pending" | "trial" | "active" | "past_due" | "cancelled" | "expired";
+
 export function getEsgBadgeColor(level: string) {
   switch (level.toLowerCase()) {
     case "platinum":
