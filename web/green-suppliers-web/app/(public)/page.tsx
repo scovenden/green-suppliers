@@ -353,7 +353,7 @@ export default async function HomePage() {
       {/* ================================================================= */}
       {/* 2. Stats bar — floating above the next section */}
       {/* ================================================================= */}
-      <div className="relative z-10 -mt-7">
+      <div className="relative z-10 -mt-14">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-8 rounded-3xl bg-white px-8 py-6 shadow-organic sm:gap-12 md:gap-16">
             <div className="flex flex-col items-center gap-1">
