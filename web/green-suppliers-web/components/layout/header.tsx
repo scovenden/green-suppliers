@@ -20,6 +20,7 @@ const navLinks = [
   { label: "Suppliers", href: "/suppliers" },
   { label: "Industries", href: "/industries" },
   { label: "Countries", href: "/countries/south-africa" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Guides", href: "/guides" },
 ];
 
