@@ -39,15 +39,16 @@ export function ContactForm() {
       // Send via the API or directly via mailto
       // For now, we use the API to queue an email to info@agilus.co.za
       const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
-      const res = await fetch(`${API_BASE}/leads`, {
+      const res = await fetch(`${API_BASE}/get-listed`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          companyName: data.subject,
           contactName: data.name,
           contactEmail: data.email,
           contactPhone: data.phone || null,
-          companyName: data.subject,
-          message: `[Contact Form] Subject: ${data.subject}\n\n${data.message}\n\nFrom: ${data.name} (${data.email})${data.phone ? ` | Phone: ${data.phone}` : ""}`,
+          country: "ZA",
+          description: `[Contact Form]\n\n${data.message}`,
         }),
       });
 
