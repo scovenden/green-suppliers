@@ -81,12 +81,18 @@ function CertStatusBadge({ status }: { status: string }) {
   );
 }
 
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+function checkExpiringSoon(expiresAt: string | null): boolean {
+  if (!expiresAt) return false;
+  const expiryDate = new Date(expiresAt);
+  const now = new Date();
+  return expiryDate > now && expiryDate.getTime() - now.getTime() < THIRTY_DAYS_MS;
+}
+
 function CertificationCard({ cert }: { cert: CertificationDto }) {
   const expiryDate = cert.expiresAt ? new Date(cert.expiresAt) : null;
-  const isExpiringSoon =
-    expiryDate &&
-    expiryDate > new Date() &&
-    expiryDate.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000;
+  const [isExpiringSoon] = useState(() => checkExpiringSoon(cert.expiresAt));
 
   return (
     <div className="rounded-2xl border bg-white p-5 shadow-sm transition-shadow hover:shadow-md">

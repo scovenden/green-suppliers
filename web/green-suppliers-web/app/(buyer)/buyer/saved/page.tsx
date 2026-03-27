@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -75,9 +76,11 @@ function SavedSupplierCard({
               )}
             >
               {supplier.logoUrl ? (
-                <img
+                <Image
                   src={supplier.logoUrl}
                   alt={supplier.tradingName}
+                  width={48}
+                  height={48}
                   className="h-full w-full rounded-2xl object-cover"
                 />
               ) : (
@@ -186,6 +189,10 @@ export default function SavedSuppliersPage() {
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    document.title = "Saved Suppliers - Buyer Portal | Green Suppliers";
+  }, []);
+
   const fetchSaved = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -203,8 +210,26 @@ export default function SavedSuppliersPage() {
   }, [token]);
 
   useEffect(() => {
-    fetchSaved();
-  }, [fetchSaved]);
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      const res = await apiGetAuth<SavedSupplier[]>(
+        "/buyer/me/saved-suppliers",
+        token
+      );
+      if (cancelled) return;
+      if (res.success && res.data) {
+        setSuppliers(res.data);
+      } else {
+        setError(res.error?.message ?? "Failed to load saved suppliers");
+      }
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchSaved is called on retry; initial load is inlined to satisfy react-hooks/set-state-in-effect
+  }, [token]);
 
   async function handleRemove(id: string) {
     if (!token) return;

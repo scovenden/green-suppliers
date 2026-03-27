@@ -40,6 +40,11 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newLeadCount, setNewLeadCount] = useState(0);
+  const [menuPathname, setMenuPathname] = useState(pathname);
+
+  // Close sidebar on route change: when pathname changes from the one
+  // that was current when the sidebar was opened, the sidebar becomes closed.
+  const isSidebarOpen = sidebarOpen && menuPathname === pathname;
 
   // Fetch new lead count for badge
   useEffect(() => {
@@ -65,11 +70,11 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
   // Close sidebar on Escape key
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape" && sidebarOpen) {
+      if (e.key === "Escape" && isSidebarOpen) {
         setSidebarOpen(false);
       }
     },
-    [sidebarOpen]
+    [isSidebarOpen]
   );
 
   useEffect(() => {
@@ -77,12 +82,7 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  // Close sidebar on route change (mobile)
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
+useEffect(() => {
     if (!isLoading && !token) {
       router.replace("/admin/login");
     }
@@ -121,7 +121,7 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Mobile overlay */}
-      {sidebarOpen && (
+      {isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           aria-hidden="true"
@@ -134,7 +134,7 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
         aria-label="Supplier dashboard navigation"
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-60 flex-col bg-brand-dark transition-transform duration-200 lg:static lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Logo */}
@@ -209,9 +209,12 @@ function SupplierDashboardShell({ children }: { children: React.ReactNode }) {
         <header className="flex h-14 items-center gap-4 border-b bg-white px-4 lg:px-6">
           <button
             className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
-            onClick={() => setSidebarOpen(true)}
+            onClick={() => {
+              setMenuPathname(pathname);
+              setSidebarOpen(true);
+            }}
             aria-label="Open navigation menu"
-            aria-expanded={sidebarOpen}
+            aria-expanded={isSidebarOpen}
             aria-controls="sidebar-nav"
           >
             <Menu className="h-5 w-5" />

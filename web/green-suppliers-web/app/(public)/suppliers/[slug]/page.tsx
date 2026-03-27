@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { apiGet } from "@/lib/api-client";
 import type { SupplierProfile, CertificationDto } from "@/lib/types";
@@ -114,9 +115,11 @@ export default async function SupplierProfilePage({ params }: PageProps) {
               )}
             >
               {supplier.logoUrl ? (
-                <img
+                <Image
                   src={supplier.logoUrl}
                   alt={supplier.tradingName}
+                  width={80}
+                  height={80}
                   className="h-full w-full rounded-2xl object-cover"
                 />
               ) : (

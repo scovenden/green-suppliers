@@ -29,7 +29,6 @@ import {
   MoreHorizontal,
   Phone,
   Building2,
-  MessageSquare,
   CheckCircle,
   XCircle,
   Loader2,
@@ -105,6 +104,10 @@ export default function SupplierLeadsInboxPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    document.title = "Leads Inbox - Supplier Portal | Green Suppliers";
+  }, []);
+
   const fetchLeads = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -122,8 +125,26 @@ export default function SupplierLeadsInboxPage() {
   }, [token]);
 
   useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      const res = await apiGetAuth<SupplierLead[]>(
+        "/supplier/me/leads",
+        token
+      );
+      if (cancelled) return;
+      if (res.success && res.data) {
+        setLeads(res.data);
+      } else {
+        setError(res.error?.message ?? "Failed to load leads");
+      }
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchLeads is kept for retry; initial load is inlined to satisfy react-hooks/set-state-in-effect
+  }, [token]);
 
   async function handleStatusUpdate(leadId: string, status: LeadStatus) {
     if (!token) return;
@@ -180,10 +201,13 @@ export default function SupplierLeadsInboxPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div role="tablist" aria-label="Filter leads by status" className="flex flex-wrap gap-2">
         {tabs.map((tab) => (
           <button
             key={tab.key}
+            role="tab"
+            aria-selected={activeTab === tab.key}
+            aria-controls="leads-tabpanel"
             onClick={() => setActiveTab(tab.key)}
             className={cn(
               "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
@@ -209,6 +233,7 @@ export default function SupplierLeadsInboxPage() {
         ))}
       </div>
 
+      <div id="leads-tabpanel" role="tabpanel" aria-label={`${activeTab} leads`}>
       {loading ? (
         <TableSkeleton />
       ) : error ? (
@@ -264,12 +289,21 @@ export default function SupplierLeadsInboxPage() {
                 return (
                   <TableRow
                     key={lead.id}
+                    tabIndex={0}
+                    role="row"
+                    aria-expanded={isExpanded}
                     className={cn(
                       "cursor-pointer",
                       isExpanded && "bg-muted/30",
                       lead.status === "new" && "font-medium"
                     )}
                     onClick={() => toggleExpand(lead.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleExpand(lead.id);
+                      }
+                    }}
                   >
                     <TableCell>
                       <div>
@@ -437,6 +471,7 @@ export default function SupplierLeadsInboxPage() {
           </Table>
         </div>
       )}
+      </div>
     </div>
   );
 }

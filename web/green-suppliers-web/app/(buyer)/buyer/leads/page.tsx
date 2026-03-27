@@ -79,6 +79,10 @@ export default function BuyerInquiriesPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  useEffect(() => {
+    document.title = "My Inquiries - Buyer Portal | Green Suppliers";
+  }, []);
+
   const fetchLeads = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -93,8 +97,23 @@ export default function BuyerInquiriesPage() {
   }, [token]);
 
   useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      const res = await apiGetAuth<BuyerLead[]>("/buyer/me/leads", token);
+      if (cancelled) return;
+      if (res.success && res.data) {
+        setLeads(res.data);
+      } else {
+        setError(res.error?.message ?? "Failed to load inquiries");
+      }
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchLeads is kept for retry; initial load is inlined to satisfy react-hooks/set-state-in-effect
+  }, [token]);
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -172,11 +191,20 @@ export default function BuyerInquiriesPage() {
                 return (
                   <TableRow
                     key={lead.id}
+                    tabIndex={0}
+                    role="row"
+                    aria-expanded={isExpanded}
                     className={cn(
                       "cursor-pointer",
                       isExpanded && "bg-muted/30"
                     )}
                     onClick={() => toggleExpand(lead.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleExpand(lead.id);
+                      }
+                    }}
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -227,11 +255,25 @@ export default function BuyerInquiriesPage() {
                       {formatDate(lead.createdAt)}
                     </TableCell>
                     <TableCell>
-                      {isExpanded ? (
-                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpand(lead.id);
+                        }}
+                        aria-label={
+                          isExpanded
+                            ? `Collapse inquiry to ${lead.supplierTradingName}`
+                            : `Expand inquiry to ${lead.supplierTradingName}`
+                        }
+                        aria-expanded={isExpanded}
+                        className="rounded-md p-1 text-muted-foreground hover:bg-muted"
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </button>
                     </TableCell>
                   </TableRow>
                 );

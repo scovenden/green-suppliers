@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { SupplierSearchResult } from "@/lib/types";
@@ -83,9 +84,11 @@ export function SupplierCard({ supplier, className, buyerAuth }: SupplierCardPro
             )}
           >
             {supplier.logoUrl ? (
-              <img
+              <Image
                 src={supplier.logoUrl}
                 alt={supplier.tradingName}
+                width={48}
+                height={48}
                 className="h-full w-full rounded-2xl object-cover"
               />
             ) : (

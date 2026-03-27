@@ -41,18 +41,20 @@ const countries = [
 // Confetti particles component (CSS-only)
 // ---------------------------------------------------------------------------
 
+function generateConfettiParticles() {
+  const colors = ["#16A34A", "#059669", "#15803D", "#22C55E", "#A3E635", "#34D399"];
+  return Array.from({ length: 24 }, (_, i) => ({
+    id: i,
+    left: `${Math.random() * 100}%`,
+    delay: `${Math.random() * 0.8}s`,
+    duration: `${1.2 + Math.random() * 1}s`,
+    color: colors[i % colors.length],
+    size: `${6 + Math.random() * 6}px`,
+  }));
+}
+
 function SuccessConfetti() {
-  const particles = React.useMemo(() => {
-    const colors = ["#16A34A", "#059669", "#15803D", "#22C55E", "#A3E635", "#34D399"];
-    return Array.from({ length: 24 }, (_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 0.8}s`,
-      duration: `${1.2 + Math.random() * 1}s`,
-      color: colors[i % colors.length],
-      size: `${6 + Math.random() * 6}px`,
-    }));
-  }, []);
+  const [particles] = React.useState(generateConfettiParticles);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
