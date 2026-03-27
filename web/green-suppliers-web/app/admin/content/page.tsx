@@ -61,12 +61,12 @@ export default function AdminContentPage() {
   const fetchPages = useCallback(async () => {
     if (!token) return;
     setLoading(true);
-    const res = await apiGetAuth<ContentPage[]>(
+    const res = await apiGetAuth<{ items: ContentPage[]; page: number; pageSize: number; total: number; totalPages: number }>(
       "/admin/content?pageSize=100",
       token
     );
     if (res.success && res.data) {
-      setPages(res.data);
+      setPages(res.data.items ?? []);
     }
     setLoading(false);
   }, [token]);
