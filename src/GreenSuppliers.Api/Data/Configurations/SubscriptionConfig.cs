@@ -17,7 +17,7 @@ public class SubscriptionConfig : IEntityTypeConfiguration<Subscription>
         builder.Property(s => s.Status)
             .IsRequired()
             .HasMaxLength(20)
-            .HasDefaultValue("active");
+            .HasDefaultValue("pending");
 
         builder.Property(s => s.BillingCycle)
             .IsRequired()
@@ -29,6 +29,9 @@ public class SubscriptionConfig : IEntityTypeConfiguration<Subscription>
 
         builder.Property(s => s.CurrentPeriodEnd)
             .IsRequired();
+
+        builder.Property(s => s.PayFastToken)
+            .HasMaxLength(200);
 
         builder.Property(s => s.ExternalId)
             .HasMaxLength(200);

@@ -43,6 +43,14 @@ public class PlanConfig : IEntityTypeConfiguration<Plan>
             .IsRequired()
             .HasDefaultValue(false);
 
+        builder.Property(p => p.PrioritySupport)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.TrialDays)
+            .IsRequired()
+            .HasDefaultValue(0);
+
         builder.Property(p => p.SortOrder)
             .IsRequired()
             .HasDefaultValue(0);

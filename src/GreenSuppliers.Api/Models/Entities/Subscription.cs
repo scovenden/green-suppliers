@@ -10,14 +10,18 @@ public class Subscription
     public Guid PlanId { get; set; }
 
     [MaxLength(20)]
-    public string Status { get; set; } = "active";
+    public string Status { get; set; } = "pending";
 
     [MaxLength(10)]
     public string BillingCycle { get; set; } = "monthly";
 
     public DateTime CurrentPeriodStart { get; set; }
     public DateTime CurrentPeriodEnd { get; set; }
+    public DateTime? TrialEnd { get; set; }
     public DateTime? CancelledAt { get; set; }
+
+    [MaxLength(200)]
+    public string? PayFastToken { get; set; }
 
     [MaxLength(200)]
     public string? ExternalId { get; set; }

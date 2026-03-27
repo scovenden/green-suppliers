@@ -55,6 +55,66 @@ public static class SeedData
         };
         context.CertificationTypes.AddRange(certificationTypes);
 
+        // Plans
+        var plans = new List<Plan>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "free",
+                DisplayName = "Free",
+                PriceMonthly = 0m,
+                PriceYearly = 0m,
+                Currency = "ZAR",
+                MaxLeadsPerMonth = 5,
+                MaxDocuments = 3,
+                FeaturedListing = false,
+                AnalyticsAccess = false,
+                PrioritySupport = false,
+                TrialDays = 0,
+                SortOrder = 1,
+                IsActive = true,
+                CreatedAt = now
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "pro",
+                DisplayName = "Pro",
+                PriceMonthly = 499m,
+                PriceYearly = 4999m,
+                Currency = "ZAR",
+                MaxLeadsPerMonth = null,
+                MaxDocuments = 20,
+                FeaturedListing = true,
+                AnalyticsAccess = true,
+                PrioritySupport = false,
+                TrialDays = 14,
+                SortOrder = 2,
+                IsActive = true,
+                CreatedAt = now
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "premium",
+                DisplayName = "Premium",
+                PriceMonthly = 999m,
+                PriceYearly = 9999m,
+                Currency = "ZAR",
+                MaxLeadsPerMonth = null,
+                MaxDocuments = null,
+                FeaturedListing = true,
+                AnalyticsAccess = true,
+                PrioritySupport = true,
+                TrialDays = 14,
+                SortOrder = 3,
+                IsActive = true,
+                CreatedAt = now
+            }
+        };
+        context.Plans.AddRange(plans);
+
         // Admin Organization
         var orgId = Guid.NewGuid();
         var adminOrg = new Organization
