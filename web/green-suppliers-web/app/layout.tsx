@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   description:
     "Find and contact verified green suppliers across South Africa. Search by industry, ESG level, and certification — free, no sign-up required.",
   metadataBase: new URL("https://greensuppliers.co.za"),
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+  },
   openGraph: {
     title: "Green Suppliers - South Africa's Verified Green Supplier Directory",
     description:
