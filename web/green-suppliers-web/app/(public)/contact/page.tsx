@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail, MapPin, Globe, ArrowRight, Leaf } from "lucide-react";
+import { Mail, MapPin, Globe, ArrowRight, Leaf, Phone } from "lucide-react";
+import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact Us | Green Suppliers",
@@ -39,10 +40,7 @@ export default function ContactPage() {
       <div className="border-b border-gray-100 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <nav className="flex items-center gap-2 text-sm text-gray-500">
-            <Link
-              href="/"
-              className="transition-colors hover:text-brand-green"
-            >
+            <Link href="/" className="transition-colors hover:text-brand-green">
               Home
             </Link>
             <span>/</span>
@@ -72,46 +70,89 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Contact Methods */}
+      {/* Contact Form + Info */}
       <section className="py-16">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-6 sm:grid-cols-3">
-            {contactMethods.map((method) => {
-              const Icon = method.icon;
-              const content = (
-                <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm transition-all hover:shadow-md">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-green-light">
-                    <Icon className="h-6 w-6 text-brand-green" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    {method.label}
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-5">
+            {/* Contact Form — takes 3 columns */}
+            <div className="lg:col-span-3">
+              <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Send Us a Message
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Fill in the form below and we&apos;ll get back to you within 1
+                  business day.
+                </p>
+                <ContactForm />
+              </div>
+            </div>
+
+            {/* Contact Info — takes 2 columns */}
+            <div className="lg:col-span-2">
+              <div className="space-y-6">
+                {contactMethods.map((method) => {
+                  const Icon = method.icon;
+                  return (
+                    <div
+                      key={method.label}
+                      className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-green-light">
+                        <Icon className="h-5 w-5 text-brand-green" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900">
+                          {method.label}
+                        </h3>
+                        {method.href ? (
+                          <a
+                            href={method.href}
+                            target={
+                              method.href.startsWith("http")
+                                ? "_blank"
+                                : undefined
+                            }
+                            rel={
+                              method.href.startsWith("http")
+                                ? "noopener noreferrer"
+                                : undefined
+                            }
+                            className="text-sm font-medium text-brand-green hover:underline"
+                          >
+                            {method.value}
+                          </a>
+                        ) : (
+                          <p className="text-sm font-medium text-brand-green">
+                            {method.value}
+                          </p>
+                        )}
+                        <p className="mt-1 text-xs text-gray-500">
+                          {method.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Response time */}
+                <div className="rounded-2xl border border-brand-green/20 bg-brand-green-light p-5">
+                  <h3 className="text-sm font-semibold text-brand-green-dark">
+                    Response Time
                   </h3>
-                  <p className="text-sm font-medium text-brand-green">
-                    {method.value}
-                  </p>
-                  <p className="text-xs leading-relaxed text-gray-500">
-                    {method.description}
+                  <p className="mt-1 text-sm text-gray-600">
+                    We typically respond within 1 business day. For urgent
+                    matters, please email us directly at{" "}
+                    <a
+                      href="mailto:hello@greensuppliers.co.za"
+                      className="font-medium text-brand-green hover:underline"
+                    >
+                      hello@greensuppliers.co.za
+                    </a>
                   </p>
                 </div>
-              );
-              if (method.href) {
-                return (
-                  <a
-                    key={method.label}
-                    href={method.href}
-                    target={method.href.startsWith("http") ? "_blank" : undefined}
-                    rel={
-                      method.href.startsWith("http")
-                        ? "noopener noreferrer"
-                        : undefined
-                    }
-                  >
-                    {content}
-                  </a>
-                );
-              }
-              return <div key={method.label}>{content}</div>;
-            })}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -176,7 +217,7 @@ export default function ContactPage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-br from-[#0f4c2e] via-brand-green-dark to-brand-emerald py-16">
+      <section className="bg-gradient-to-br from-[#0F172A] via-[#0F172A] to-brand-green-dark py-16">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
           <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
             <Leaf className="h-6 w-6 text-green-300" />
@@ -184,12 +225,12 @@ export default function ContactPage() {
           <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
             Ready to find your next green supplier?
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-green-100/80">
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-slate-400">
             Search our directory for free. No account required.
           </p>
           <Link
             href="/suppliers"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-green-dark shadow-lg transition-all hover:bg-green-50 hover:shadow-xl"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-green px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-brand-green-hover hover:shadow-xl"
           >
             Browse Suppliers
             <ArrowRight className="h-4 w-4" />
