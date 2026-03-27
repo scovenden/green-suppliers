@@ -82,6 +82,10 @@ export default function BuyerDashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    document.title = "Dashboard - Buyer Portal | Green Suppliers";
+  }, []);
+
+  useEffect(() => {
     if (!token) return;
 
     async function fetchDashboard() {

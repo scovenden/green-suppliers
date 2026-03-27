@@ -3,6 +3,25 @@ import type { ApiResponse } from "./types";
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
+/**
+ * Handle 401/403 responses globally.
+ * Clears stored auth tokens and redirects to login when the session has expired
+ * or the user is not authorised for the requested resource.
+ */
+function handleAuthError(status: number): void {
+  if (typeof window === "undefined") return;
+  if (status === 401 || status === 403) {
+    // Clear persisted session
+    localStorage.removeItem("gs_admin_token");
+    localStorage.removeItem("gs_admin_refresh");
+    localStorage.removeItem("gs_admin_user");
+    localStorage.removeItem("gs_admin_expires");
+    // Redirect to login (preserve current path for return)
+    const returnUrl = encodeURIComponent(window.location.pathname);
+    window.location.href = `/admin/login?returnUrl=${returnUrl}`;
+  }
+}
+
 export async function apiGet<T>(
   path: string,
   options?: { revalidate?: number }
@@ -48,6 +67,7 @@ export async function apiPost<T>(
       body: JSON.stringify(body),
     });
     if (!res.ok) {
+      if (token) handleAuthError(res.status);
       const body = await res.json().catch(() => null);
       return (
         body ?? {
@@ -82,6 +102,7 @@ export async function apiPut<T>(
       body: JSON.stringify(body),
     });
     if (!res.ok) {
+      handleAuthError(res.status);
       const body = await res.json().catch(() => null);
       return (
         body ?? {
@@ -116,6 +137,7 @@ export async function apiPatch<T>(
       body: JSON.stringify(body),
     });
     if (!res.ok) {
+      handleAuthError(res.status);
       const body = await res.json().catch(() => null);
       return (
         body ?? {
@@ -150,6 +172,7 @@ export async function apiDelete<T>(
       return { success: true, data: null, error: null };
     }
     if (!res.ok) {
+      handleAuthError(res.status);
       const body = await res.json().catch(() => null);
       return (
         body ?? {
@@ -183,6 +206,7 @@ export async function apiPostMultipart<T>(
       body: formData,
     });
     if (!res.ok) {
+      handleAuthError(res.status);
       const body = await res.json().catch(() => null);
       return (
         body ?? {
@@ -214,6 +238,7 @@ export async function apiGetAuth<T>(
       cache: "no-store",
     });
     if (!res.ok) {
+      handleAuthError(res.status);
       const body = await res.json().catch(() => null);
       return (
         body ?? {

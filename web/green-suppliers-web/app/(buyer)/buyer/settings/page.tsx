@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -48,6 +48,10 @@ function InfoRow({
 export default function BuyerSettingsPage() {
   const { user, token } = useAuth();
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    document.title = "Settings - Buyer Portal | Green Suppliers";
+  }, []);
 
   const form = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),

@@ -48,8 +48,8 @@
 - **Architecture:** Tier 2 — Service-layer monolith (see ADR-0001)
 - **ORM:** Entity Framework Core (direct DbContext access, no repository pattern)
 - **Background jobs:** .NET Worker Service (separate project)
-- **Email:** SendGrid or Resend (TBD — transactional email for lead notifications + cert reminders)
-- **Auth (Phase 1):** Seeded admin user + JWT (Entra ID deferred to Phase 2)
+- **Email:** Resend (transactional email for lead notifications, cert reminders, verification, password reset)
+- **Auth:** JWT access tokens + refresh tokens, supplier/buyer self-registration with email verification, password reset flow (Entra ID deferred to Phase 3)
 
 ### Database
 - **Primary:** Azure SQL Database
@@ -88,59 +88,49 @@
 
 **Tier 2 — Service-layer monolith** (see [ADR-0001](docs/decisions/0001-architecture-tier-and-pattern.md))
 
-Complexity score: 9/20. Clean Architecture is premature for 1-2 devs and 18 tables. Upgrade triggers documented in ADR-0001.
+Complexity score: 11/20 (re-scored 2026-03-26). Clean Architecture is premature for 1 dev and 21 tables. Upgrade triggers documented in ADR-0001, re-assessed in ADR-0002 and architecture-report-2026-03-26.
 
 ### Folder Structure
 
 ```
 GreenSuppliers/
   src/
-    GreenSuppliers.Api/           -- Single .NET project
-      Controllers/                -- Thin controllers, delegate to services
-      Services/                   -- Business logic (ESG scoring, verification, search, leads)
+    GreenSuppliers.Api/           -- Single .NET project (134 source files)
+      Controllers/                -- 17 controllers (thin, delegate to services)
+      Services/                   -- 12 service classes (business logic)
       Models/
-        Entities/                 -- EF Core entities (POCOs)
-        DTOs/                     -- Request/response DTOs
-        Enums/                    -- VerificationStatus, EsgLevel, etc.
+        Entities/                 -- 21 EF Core entities (POCOs)
+        DTOs/                     -- 30 request/response DTOs
+        Enums/                    -- VerificationStatus, EsgLevel, LeadStatus, etc.
       Data/
         GreenSuppliersDbContext.cs
-        Configurations/           -- EF Core entity type configurations
-        Migrations/
-      Middleware/                  -- Error handling, request logging
-      Auth/                       -- JWT auth
-      Validators/                 -- Input validation
+        SeedData.cs               -- Initial data seeding
+        Configurations/           -- 22 EF Core entity type configurations
+        Migrations/               -- 5 migrations
+      Middleware/                  -- Error handling, request logging, security headers
+      Auth/                       -- JwtTokenService
+      Validators/                 -- 12 FluentValidation validators
+      Helpers/                    -- SlugHelper
+      Extensions/                 -- ClaimsPrincipalExtensions
       Program.cs
 
     GreenSuppliers.Worker/        -- Separate .NET Worker Service
       Jobs/
-        CertExpiryScanner.cs
-        NightlyRescore.cs
-        EmailDispatch.cs
+        CertExpiryScanner.cs      -- Daily cert expiry check + email reminders
+        NightlyRescore.cs         -- Nightly ESG rescore for all profiles
+        EmailDispatch.cs          -- Async email dispatch from queue
+      Services/
+        IEmailSender.cs           -- Email sender interface
+        ResendEmailSender.cs      -- Resend API implementation
+        ConsoleEmailSender.cs     -- Dev fallback
+
+  tests/
+    GreenSuppliers.Tests/         -- 18 test files (~7,200 lines)
 
   web/
-    green-suppliers-web/          -- Next.js 14 App Router
-      app/
-        (public)/                 -- SSR public pages
-          page.tsx                -- Homepage
-          suppliers/
-            page.tsx              -- Search results
-            [slug]/page.tsx       -- Supplier profile
-          industries/[slug]/page.tsx
-          countries/[slug]/page.tsx
-          guides/[slug]/page.tsx
-        admin/                    -- Admin route group (protected)
-      components/
-        ui/                       -- shadcn/ui
-        suppliers/                -- Supplier-specific
-        search/                   -- Search and filters
-        leads/                    -- Lead forms
-        layout/                   -- Header, footer, nav
-      lib/
-        api-client.ts             -- Typed API client
-        types.ts
-        validators.ts             -- Zod schemas
+    green-suppliers-web/          -- Next.js 14 App Router (not yet built)
 
-  docs/decisions/                 -- ADRs
+  docs/decisions/                 -- ADRs + design docs + architecture reports
   CLAUDE.md
 ```
 
@@ -176,6 +166,9 @@ GreenSuppliers/
 - **Lead** — buyer inquiry to a supplier
 - **ContentPage** — CMS-lite for SEO pillar/industry/country pages
 - **AuditEvent** — append-only log of sensitive actions
+- **RefreshToken** — JWT refresh tokens for auth session management
+- **SavedSupplier** — buyer's saved/bookmarked suppliers
+- **EmailQueueItem** — queued emails for async dispatch by Worker
 
 ### Phase 2 Entities
 - **Plan** — subscription tier (free, pro, premium)
@@ -193,6 +186,9 @@ SupplierProfile 1──* SupplierCertification
 SupplierCertification *──1 CertificationType
 SupplierProfile 1──* Document
 SupplierProfile 1──* Lead
+User 1──* RefreshToken
+User 1──* SavedSupplier (buyer bookmarks)
+SavedSupplier *──1 SupplierProfile
 ```
 
 ---
@@ -314,26 +310,55 @@ colors: {
 
 ## Phase Roadmap
 
-### Phase 1 — Public Directory (Current)
-- Supplier profiles (admin-seeded 20-30 initially, then outreach to grow)
+### Phase 1 — Public Directory (COMPLETE)
+- Supplier profiles (admin-seeded 15 suppliers)
 - Public "Get Listed" intake form (simple submission, admin enters data)
-- Search + filters (country, industry, certification, ESG level)
-- Supplier profile pages (SSR, SEO-optimised)
-- SEO country pages and industry pages
+- Search + filters (country, industry, certification, ESG level) with SQL full-text search
 - Lead capture forms (anonymous allowed, registered buyers get extras)
 - Verification + ESG scoring engine
-- Background jobs (expiry, rescoring, email dispatch)
+- Background jobs (cert expiry scanner, nightly rescore, email dispatch via Resend)
 - Content pages (pillar guides)
-- Admin UI (supplier CRUD, taxonomy management, flags, content editor)
-- SDG brand messaging (structured SDG tagging deferred to Phase 2)
+- Admin UI (supplier CRUD, taxonomy management, flags, content editor, dashboard)
+- 30 API endpoints, 19 database tables
 
-### Phase 2 — Self-Service + Monetisation
-- Supplier self-registration + email verification
-- Profile wizard (self-service)
-- Subscription billing (Free / Pro / Premium) via PayFast
-- Supplier dashboard (leads, analytics, billing)
-- Sponsored placements
-- Admin console (flags, taxonomy, CMS, placements)
+### Phase 2 — Self-Service + Monetisation (IN PROGRESS)
+
+**Sprint 0 — Tech Debt (COMPLETE)**
+- CancellationToken threading, N+1 query fixes, rate limiting, security headers, health checks
+
+**Sprint 1 — Auth Foundation (COMPLETE)**
+- Resend email integration (replaced console stub)
+- Supplier + buyer self-registration with email verification
+- Password reset flow with timing-safe token generation
+- JWT refresh tokens with access/refresh token type separation
+
+**Sprint 2 — Supplier Self-Service (COMPLETE)**
+- Supplier profile editor (self-service, editable fields only)
+- Certification submission (always Pending, admin reviews)
+- Document upload (metadata, blob upload TODO)
+- Profile publication request (completeness >= 50%)
+- Supplier dashboard (leads, certs, ESG score, completeness)
+
+**Sprint 3 — Buyer Accounts + Supplier Leads (COMPLETE)**
+- Buyer saved suppliers (bookmark/unbookmark)
+- Buyer inquiry history
+- Buyer dashboard (saved count, inquiry stats)
+- Supplier leads inbox (paginated, filterable by status)
+- Lead status transitions (New -> Contacted -> Closed) with IDOR protection
+
+**Sprint 4 — Subscription Billing (NEXT)**
+- PayFast integration (subscription creation, ITN webhooks, payment recording)
+- Plan enforcement (Free / Pro / Premium feature gating)
+- Subscription management (upgrade, downgrade, cancel)
+- Billing dashboard
+
+**Sprint 5 — Supplier Dashboard Enhancements (PLANNED)**
+- Enhanced analytics (view counts, search impressions)
+- SDG tagging
+
+**Sprint 6 — Sponsored Placements + Analytics (PLANNED)**
+- Sponsored placement management
+- Enhanced analytics display
 
 ### Phase 3 — Pan-African Expansion
 - Multi-country content and supplier profiles
@@ -348,6 +373,9 @@ colors: {
 - Global standards: see `C:\Users\SiviCovenden\CLAUDE.md` for API conventions, coding standards, and architecture rules
 - Product spec: `Green Suppliers.docx` in project root
 - Architecture decision: [ADR-0001](docs/decisions/0001-architecture-tier-and-pattern.md)
+- Phase 2 tier decision: [ADR-0002](docs/decisions/0002-phase2-tier-decision.md)
 - Milestone 1 design: [design-milestone-01.md](docs/decisions/design-milestone-01.md)
-- Architecture report: [architecture-report-2026-03-24.md](docs/decisions/architecture-report-2026-03-24.md)
+- Milestone 2 design: [design-milestone-02.md](docs/decisions/design-milestone-02.md)
+- Architecture report (initial): [architecture-report-2026-03-24.md](docs/decisions/architecture-report-2026-03-24.md)
+- Architecture report (post-Sprint 3): [architecture-report-2026-03-26.md](docs/decisions/architecture-report-2026-03-26.md)
 - Existing site: www.greensuppliers.co.za (WordPress — to be replaced, back up before cutover)

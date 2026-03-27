@@ -36,6 +36,10 @@ function BuyerDashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuPathname, setMenuPathname] = useState(pathname);
+
+  // Close mobile menu on route change by comparing tracked pathname
+  const isMobileMenuOpen = mobileMenuOpen && menuPathname === pathname;
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -50,11 +54,6 @@ function BuyerDashboardShell({ children }: { children: React.ReactNode }) {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
 
   // Auth guard: redirect if not authenticated
   useEffect(() => {
@@ -195,11 +194,16 @@ function BuyerDashboardShell({ children }: { children: React.ReactNode }) {
             {/* Mobile hamburger */}
             <button
               className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={mobileMenuOpen}
+              onClick={() => {
+                if (!isMobileMenuOpen) {
+                  setMenuPathname(pathname);
+                }
+                setMobileMenuOpen(!isMobileMenuOpen);
+              }}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMobileMenuOpen}
             >
-              {mobileMenuOpen ? (
+              {isMobileMenuOpen ? (
                 <X className="h-5 w-5" />
               ) : (
                 <Menu className="h-5 w-5" />
@@ -209,7 +213,7 @@ function BuyerDashboardShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Mobile nav menu */}
-        {mobileMenuOpen && (
+        {isMobileMenuOpen && (
           <nav
             aria-label="Buyer dashboard mobile navigation"
             className="border-t bg-white px-4 pb-4 pt-2 md:hidden"

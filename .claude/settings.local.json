@@ -3,7 +3,18 @@
     "allow": [
       "Bash(dotnet build:*)",
       "Bash(dotnet test:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(ls \"c:/Users/SiviCovenden/OneDrive - Agilus \\(Pty\\) Ltd/Documents/Claude/Green Suppliers/web/green-suppliers-web\")",
+      "Bash(ls \"c:/Users/SiviCovenden/OneDrive - Agilus \\(Pty\\) Ltd/Documents/Claude/Green Suppliers/web/green-suppliers-web/app\")",
+      "Bash(ls -R 'c:/Users/SiviCovenden/OneDrive - Agilus \\(Pty\\) Ltd/Documents/Claude/Green Suppliers/web/green-suppliers-web/app')",
+      "Bash(ls \"c:/Users/SiviCovenden/OneDrive - Agilus \\(Pty\\) Ltd/Documents/Claude/Green Suppliers/web/green-suppliers-web/node_modules/next/dist/docs/\")",
+      "Bash(ls \"c:/Users/SiviCovenden/OneDrive - Agilus \\(Pty\\) Ltd/Documents/Claude/Green Suppliers/web/green-suppliers-web/node_modules/next/dist/docs/01-app/01-getting-started/\")",
+      "Bash(ls -la \"c:/Users/SiviCovenden/OneDrive - Agilus \\(Pty\\) Ltd/Documents/Claude/Green Suppliers/web/green-suppliers-web/app/\\(app\\)/\")",
+      "Bash(mv \"app/\\(buyer\\)/page.tsx\" \"app/\\(buyer\\)/buyer/page.tsx\")",
+      "Bash(mv \"app/\\(buyer\\)/saved/page.tsx\" \"app/\\(buyer\\)/buyer/saved/page.tsx\")",
+      "Bash(mv \"app/\\(buyer\\)/leads/page.tsx\" \"app/\\(buyer\\)/buyer/leads/page.tsx\")",
+      "Bash(mv \"app/\\(buyer\\)/settings/page.tsx\" \"app/\\(buyer\\)/buyer/settings/page.tsx\")",
+      "Bash(rmdir \"app/\\(buyer\\)/saved\" \"app/\\(buyer\\)/leads\" \"app/\\(buyer\\)/settings\")"
     ]
   }
 }
