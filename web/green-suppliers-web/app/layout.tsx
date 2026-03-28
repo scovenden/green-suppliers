@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { AnalyticsScripts } from "@/components/tracking/analytics-scripts";
 import "./globals.css";
 
 const heading = Plus_Jakarta_Sans({
@@ -44,6 +45,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         {children}
         <Toaster position="top-right" richColors closeButton />
+        <AnalyticsScripts />
       </body>
     </html>
   );
