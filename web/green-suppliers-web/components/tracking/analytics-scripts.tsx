@@ -105,17 +105,24 @@ export function AnalyticsScripts() {
 }
 
 // Custom event tracking helpers
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getWindow(): any {
+  return typeof window !== "undefined" ? window : null;
+}
+
 export function trackEvent(eventName: string, params?: Record<string, string | number | boolean>) {
+  const w = getWindow();
+  if (!w) return;
   // GA4
-  if (typeof window !== "undefined" && GA_ID && (window as Record<string, unknown>).gtag) {
-    (window as Record<string, (...args: unknown[]) => void>).gtag("event", eventName, params);
+  if (GA_ID && w.gtag) {
+    w.gtag("event", eventName, params);
   }
   // LinkedIn
-  if (typeof window !== "undefined" && LINKEDIN_ID && (window as Record<string, unknown>).lintrk) {
-    (window as Record<string, (...args: unknown[]) => void>).lintrk("track", { conversion_id: eventName });
+  if (LINKEDIN_ID && w.lintrk) {
+    w.lintrk("track", { conversion_id: eventName });
   }
   // Facebook
-  if (typeof window !== "undefined" && FB_PIXEL_ID && (window as Record<string, unknown>).fbq) {
-    (window as Record<string, (...args: unknown[]) => void>).fbq("trackCustom", eventName, params);
+  if (FB_PIXEL_ID && w.fbq) {
+    w.fbq("trackCustom", eventName, params);
   }
 }
