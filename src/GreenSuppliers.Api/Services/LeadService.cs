@@ -102,7 +102,7 @@ public class LeadService
         var lead = new Lead
         {
             Id = Guid.NewGuid(),
-            SupplierProfileId = Guid.Empty,
+            SupplierProfileId = null,
             ContactName = request.ContactName,
             ContactEmail = request.ContactEmail,
             ContactPhone = request.ContactPhone,
