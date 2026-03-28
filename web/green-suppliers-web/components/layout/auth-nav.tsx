@@ -82,13 +82,7 @@ export function AuthNav() {
     : user.email[0].toUpperCase();
 
   return (
-    <div className="flex items-center gap-3">
-      <Link
-        href={dashboardHref}
-        className="text-sm font-medium text-white/80 transition-colors hover:text-white"
-      >
-        {dashboardLabel}
-      </Link>
+    <div className="flex items-center gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger
           className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold text-white transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-green-dark"
