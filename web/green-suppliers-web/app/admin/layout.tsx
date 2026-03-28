@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Tags,
   FileText,
+  BarChart3,
   LogOut,
   Leaf,
   Menu,
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { href: "/admin/leads", label: "Leads", icon: Mail },
   { href: "/admin/taxonomy", label: "Taxonomy", icon: Tags },
   { href: "/admin/content", label: "Content", icon: FileText },
+  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
 ] as const;
 
 function AdminShell({ children }: { children: React.ReactNode }) {
