@@ -83,6 +83,12 @@ export function AuthNav() {
 
   return (
     <div className="flex items-center gap-2">
+      <Link
+        href={dashboardHref}
+        className="hidden text-sm font-medium text-white/70 transition-colors hover:text-white sm:block"
+      >
+        My Account
+      </Link>
       <DropdownMenu>
         <DropdownMenuTrigger
           className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold text-white transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-green-dark"
